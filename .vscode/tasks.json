@@ -1,0 +1,22 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build",
+      "type": "shell",
+      "command": "ninja && ./bin/vulkan-engine.exe",
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "compile shaders",
+      "type": "shell",
+      "command": "./compile-shaders.bat",
+      "problemMatcher": [],
+      "group": "build"
+    },
+  ]
+}
