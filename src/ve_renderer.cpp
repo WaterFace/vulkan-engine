@@ -96,8 +96,7 @@ void Renderer::endFrame() {
       m_window.wasWindowResized()) {
     m_window.resetWindowResizedFlag();
     recreateSwapchain();
-  }
-  if (result != VK_SUCCESS) {
+  } else if (result != VK_SUCCESS) {
     throw std::runtime_error("failed to present swapchain image");
   }
   m_isFrameStarted = false;
