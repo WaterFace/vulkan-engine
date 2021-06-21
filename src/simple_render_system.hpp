@@ -10,21 +10,20 @@
 namespace ve {
 
 class SimpleRenderSystem {
-public:
-  SimpleRenderSystem(const SimpleRenderSystem &) = delete;
-  SimpleRenderSystem &operator=(const SimpleRenderSystem &) = delete;
+  public:
+  SimpleRenderSystem(const SimpleRenderSystem&) = delete;
+  SimpleRenderSystem& operator=(const SimpleRenderSystem&) = delete;
 
-  SimpleRenderSystem(Device &device, VkRenderPass renderPass);
+  SimpleRenderSystem(Device& device, VkRenderPass renderPass);
   ~SimpleRenderSystem();
 
-  void renderGameObjects(VkCommandBuffer cmd,
-                         std::vector<GameObject> &gameObjects);
+  void renderGameObjects(VkCommandBuffer cmd, std::vector<GameObject>& gameObjects);
 
-private:
+  private:
   void createPipelineLayout();
   void createPipeline(VkRenderPass renderPass);
 
-  Device &m_device;
+  Device& m_device;
 
   std::unique_ptr<Pipeline> m_pipeline;
   VkPipelineLayout m_pipelineLayout;

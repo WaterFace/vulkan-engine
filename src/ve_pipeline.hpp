@@ -8,8 +8,8 @@
 namespace ve {
 
 struct PipelineConfigInfo {
-  PipelineConfigInfo(const PipelineConfigInfo &) = delete;
-  PipelineConfigInfo &operator=(const PipelineConfigInfo &) = delete;
+  PipelineConfigInfo(const PipelineConfigInfo&) = delete;
+  PipelineConfigInfo& operator=(const PipelineConfigInfo&) = delete;
 
   VkPipelineViewportStateCreateInfo viewportInfo;
   VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo;
@@ -26,30 +26,27 @@ struct PipelineConfigInfo {
 };
 
 class Pipeline {
-public:
-  Pipeline(Device &device, const std::string &vertFilepath,
-           const std::string &fragFilepath,
-           const PipelineConfigInfo &configInfo);
+  public:
+  Pipeline(Device& device, const std::string& vertFilepath, const std::string& fragFilepath,
+      const PipelineConfigInfo& configInfo);
   ~Pipeline();
 
-  Pipeline(const Pipeline &) = delete;
-  Pipeline &operator=(const Pipeline &) = delete;
+  Pipeline(const Pipeline&) = delete;
+  Pipeline& operator=(const Pipeline&) = delete;
 
-  static void defaultPipelineConfigInfo(PipelineConfigInfo &configInfo);
+  static void defaultPipelineConfigInfo(PipelineConfigInfo& configInfo);
 
   void bind(VkCommandBuffer cmd);
 
-private:
-  static std::vector<char> readFile(const std::string &filepath);
+  private:
+  static std::vector<char> readFile(const std::string& filepath);
 
-  void createGraphicsPipeline(const std::string &vertFilepath,
-                              const std::string &fragFilepath,
-                              const PipelineConfigInfo &configInfo);
+  void createGraphicsPipeline(
+      const std::string& vertFilepath, const std::string& fragFilepath, const PipelineConfigInfo& configInfo);
 
-  void createShaderModule(const std::vector<char> &code,
-                          VkShaderModule *shaderModule);
+  void createShaderModule(const std::vector<char>& code, VkShaderModule* shaderModule);
 
-  Device &m_device;
+  Device& m_device;
   VkPipeline m_graphicsPipeline;
   VkShaderModule m_vertShaderModule;
   VkShaderModule m_fragShaderModule;

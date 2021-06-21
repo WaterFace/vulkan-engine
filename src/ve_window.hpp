@@ -8,27 +8,24 @@
 namespace ve {
 
 class Window {
-public:
+  public:
   Window(int w, int h, std::string name);
   ~Window();
 
-  Window(const Window &) = delete;
-  Window &operator=(const Window &) = delete;
+  Window(const Window&) = delete;
+  Window& operator=(const Window&) = delete;
 
   bool shouldClose() { return glfwWindowShouldClose(m_window); }
-  VkExtent2D getExtent() {
-    return {static_cast<uint32_t>(m_width), static_cast<uint32_t>(m_height)};
-  }
+  VkExtent2D getExtent() { return { static_cast<uint32_t>(m_width), static_cast<uint32_t>(m_height) }; }
 
   bool wasWindowResized() { return m_framebufferResized; }
   void resetWindowResizedFlag() { m_framebufferResized = false; }
 
-  void createWindowSurface(VkInstance instance, VkSurfaceKHR *surface);
+  void createWindowSurface(VkInstance instance, VkSurfaceKHR* surface);
 
-private:
+  private:
   static uint32_t m_window_count;
-  static void framebufferResizedCallback(GLFWwindow *window, int width,
-                                         int height);
+  static void framebufferResizedCallback(GLFWwindow* window, int width, int height);
 
   void initWindow();
 
@@ -37,7 +34,7 @@ private:
   bool m_framebufferResized = false;
 
   std::string m_name;
-  GLFWwindow *m_window;
+  GLFWwindow* m_window;
 };
 
 } // namespace ve
