@@ -31,16 +31,11 @@ void Renderer::recreateSwapchain() {
     if (!oldSwapchain->compareSwapFormats(*m_swapchain.get())) {
       throw std::runtime_error("Swapchain image or depth format has changed");
     }
-
-    if (m_swapchain->imageCount() != m_commandBuffers.size()) {
-      freeCommandBuffers();
-      createCommandBuffers();
-    }
   }
 }
 
 void Renderer::createCommandBuffers() {
-  m_commandBuffers.resize(m_swapchain->imageCount());
+  m_commandBuffers.resize(Swapchain::MAX_FRAMES_IN_FLIGHT);
   VkCommandBufferAllocateInfo allocInfo{};
   allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
   allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
@@ -100,6 +95,8 @@ void Renderer::endFrame() {
     throw std::runtime_error("failed to present swapchain image");
   }
   m_isFrameStarted = false;
+  m_currentFrameIndex =
+      (m_currentFrameIndex + 1) % Swapchain::MAX_FRAMES_IN_FLIGHT;
 }
 
 void Renderer::beginSwapchainRenderPass(VkCommandBuffer cmd) {
