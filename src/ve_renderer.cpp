@@ -25,8 +25,13 @@ void Renderer::recreateSwapchain() {
   if (m_swapchain == nullptr) {
     m_swapchain = std::make_unique<Swapchain>(m_device, extent);
   } else {
-    m_swapchain =
-        std::make_unique<Swapchain>(m_device, extent, std::move(m_swapchain));
+    std::shared_ptr<Swapchain> oldSwapchain = std::move(m_swapchain);
+    m_swapchain = std::make_unique<Swapchain>(m_device, extent, oldSwapchain);
+
+    if (!oldSwapchain->compareSwapFormats(*m_swapchain.get())) {
+      throw std::runtime_error("Swapchain image or depth format has changed");
+    }
+
     if (m_swapchain->imageCount() != m_commandBuffers.size()) {
       freeCommandBuffers();
       createCommandBuffers();
