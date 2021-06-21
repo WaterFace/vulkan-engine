@@ -4,6 +4,8 @@
 
 namespace ve {
 
+std::vector<KeyInput *> KeyInput::m_instances{};
+
 void KeyInput::init(GLFWwindow *window) { glfwSetKeyCallback(window, KeyInput::keyCallback); }
 
 KeyInput::KeyInput(std::vector<int> keysToMonitor) : m_enabled{true} {

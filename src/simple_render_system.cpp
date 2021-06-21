@@ -10,27 +10,24 @@
 namespace ve {
 
 struct SimplePushConstantData {
-  glm::mat4 transform { 1.0f };
+  glm::mat4 mvp{1.0f};
   alignas(16) glm::vec3 color;
 };
 
-SimpleRenderSystem::SimpleRenderSystem(Device& device, VkRenderPass renderPass)
-    : m_device { device }
-{
+SimpleRenderSystem::SimpleRenderSystem(Device &device, VkRenderPass renderPass) : m_device{device} {
   createPipelineLayout();
   createPipeline(renderPass);
 }
 
 SimpleRenderSystem::~SimpleRenderSystem() { vkDestroyPipelineLayout(m_device.device(), m_pipelineLayout, nullptr); }
 
-void SimpleRenderSystem::createPipelineLayout()
-{
-  VkPushConstantRange pushConstantRange {};
+void SimpleRenderSystem::createPipelineLayout() {
+  VkPushConstantRange pushConstantRange{};
   pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
   pushConstantRange.offset = 0;
   pushConstantRange.size = sizeof(SimplePushConstantData);
 
-  VkPipelineLayoutCreateInfo pipelineLayoutInfo {};
+  VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
   pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
   pipelineLayoutInfo.setLayoutCount = 0;
   pipelineLayoutInfo.pSetLayouts = nullptr;
@@ -42,32 +39,30 @@ void SimpleRenderSystem::createPipelineLayout()
   }
 }
 
-void SimpleRenderSystem::createPipeline(VkRenderPass renderPass)
-{
-  PipelineConfigInfo pipelineConfig {};
+void SimpleRenderSystem::createPipeline(VkRenderPass renderPass) {
+  PipelineConfigInfo pipelineConfig{};
   Pipeline::defaultPipelineConfigInfo(pipelineConfig);
   pipelineConfig.renderPass = renderPass;
   pipelineConfig.pipelineLayout = m_pipelineLayout;
-  m_pipeline
-      = std::make_unique<Pipeline>(m_device, "shaders/simple.vert.spv", "shaders/simple.frag.spv", pipelineConfig);
+  m_pipeline =
+      std::make_unique<Pipeline>(m_device, "shaders/simple.vert.spv", "shaders/simple.frag.spv", pipelineConfig);
 }
 
-void SimpleRenderSystem::renderGameObjects(
-    VkCommandBuffer cmd, std::vector<GameObject>& gameObjects, const Camera& camera)
-{
+void SimpleRenderSystem::renderGameObjects(VkCommandBuffer cmd, std::vector<GameObject> &gameObjects,
+                                           const Camera &camera) {
   m_pipeline->bind(cmd);
 
-  for (auto& obj : gameObjects) {
+  for (auto &obj : gameObjects) {
     obj.transform.rotation.y = glm::mod(obj.transform.rotation.y + 0.01f, glm::two_pi<float>());
 
     obj.transform.rotation.x = glm::mod(obj.transform.rotation.x + 0.02f, glm::two_pi<float>());
 
-    SimplePushConstantData push {};
+    SimplePushConstantData push{};
     push.color = obj.color;
-    push.transform = camera.getProjection() * obj.transform.mat4();
+    push.mvp = camera.getProjection() * camera.getView() * obj.transform.mat4();
 
     vkCmdPushConstants(cmd, m_pipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_VERTEX_BIT, 0,
-        sizeof(SimplePushConstantData), &push);
+                       sizeof(SimplePushConstantData), &push);
     obj.model->bind(cmd);
     obj.model->draw(cmd);
   }
