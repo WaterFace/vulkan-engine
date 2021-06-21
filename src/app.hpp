@@ -2,8 +2,7 @@
 
 #include "ve_device.hpp"
 #include "ve_game_object.hpp"
-#include "ve_pipeline.hpp"
-#include "ve_swapchain.hpp"
+#include "ve_renderer.hpp"
 #include "ve_window.hpp"
 
 #include <memory>
@@ -25,21 +24,11 @@ public:
 
 private:
   void loadGameObjects();
-  void createPipelineLayout();
-  void createPipeline();
-  void createCommandBuffers();
-  void freeCommandBuffers();
-  void drawFrame();
-  void recreateSwapchain();
-  void recordCommandBuffer(int imageIndex);
-  void renderGameObjects(VkCommandBuffer cmd);
 
   Window m_window{WIDTH, HEIGHT, "First App"};
   Device m_device{m_window};
-  std::unique_ptr<Swapchain> m_swapchain;
-  std::unique_ptr<Pipeline> m_pipeline;
-  VkPipelineLayout m_pipelineLayout;
-  std::vector<VkCommandBuffer> m_commandBuffers;
+  Renderer m_renderer{m_window, m_device};
+
   std::vector<GameObject> m_gameObjects;
 };
 
