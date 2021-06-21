@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ve_camera.hpp"
 #include "ve_device.hpp"
 #include "ve_game_object.hpp"
 #include "ve_pipeline.hpp"
@@ -17,7 +18,7 @@ class SimpleRenderSystem {
   SimpleRenderSystem(Device& device, VkRenderPass renderPass);
   ~SimpleRenderSystem();
 
-  void renderGameObjects(VkCommandBuffer cmd, std::vector<GameObject>& gameObjects);
+  void renderGameObjects(VkCommandBuffer cmd, std::vector<GameObject>& gameObjects, const Camera& camera);
 
   private:
   void createPipelineLayout();

@@ -52,7 +52,8 @@ void SimpleRenderSystem::createPipeline(VkRenderPass renderPass)
       = std::make_unique<Pipeline>(m_device, "shaders/simple.vert.spv", "shaders/simple.frag.spv", pipelineConfig);
 }
 
-void SimpleRenderSystem::renderGameObjects(VkCommandBuffer cmd, std::vector<GameObject>& gameObjects)
+void SimpleRenderSystem::renderGameObjects(
+    VkCommandBuffer cmd, std::vector<GameObject>& gameObjects, const Camera& camera)
 {
   m_pipeline->bind(cmd);
 
@@ -63,7 +64,7 @@ void SimpleRenderSystem::renderGameObjects(VkCommandBuffer cmd, std::vector<Game
 
     SimplePushConstantData push {};
     push.color = obj.color;
-    push.transform = obj.transform.mat4();
+    push.transform = camera.getProjection() * obj.transform.mat4();
 
     vkCmdPushConstants(cmd, m_pipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_VERTEX_BIT, 0,
         sizeof(SimplePushConstantData), &push);

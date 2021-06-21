@@ -41,6 +41,9 @@ set(SOURCES
     src/ve_game_object.cpp
     src/ve_renderer.hpp
     src/ve_renderer.cpp
+    src/ve_camera.hpp
+    src/ve_camera.cpp
+
     src/simple_render_system.hpp
     src/simple_render_system.cpp
 )

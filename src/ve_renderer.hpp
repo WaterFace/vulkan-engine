@@ -19,7 +19,7 @@ class Renderer {
   ~Renderer();
 
   VkRenderPass getSwapchainRenderPass() const { return m_swapchain->getRenderPass(); }
-
+  float getAspectRatio() const { return m_swapchain->extentAspectRatio(); }
   bool isFrameInProgress() const { return m_isFrameStarted; }
 
   VkCommandBuffer getCurrentCommandBuffer() const

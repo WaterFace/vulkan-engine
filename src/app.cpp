@@ -1,5 +1,7 @@
 #include "app.hpp"
 
+#include "ve_camera.hpp"
+
 #include "simple_render_system.hpp"
 
 #define GLM_FORCE_RADIANS
@@ -19,12 +21,18 @@ App::~App() { }
 void App::run()
 {
   SimpleRenderSystem simpleRenderSystem { m_device, m_renderer.getSwapchainRenderPass() };
+  Camera camera {};
+
   while (!m_window.shouldClose()) {
     glfwPollEvents();
 
+    float aspect = m_renderer.getAspectRatio();
+    // camera.setOrthographicProjection(-aspect, aspect, -1, 1, -1, 1);
+    camera.setPerspectiveProjection(45.0f, aspect, 0.1f, 10.0f);
+
     if (auto cmd = m_renderer.beginFrame()) {
       m_renderer.beginSwapchainRenderPass(cmd);
-      simpleRenderSystem.renderGameObjects(cmd, m_gameObjects);
+      simpleRenderSystem.renderGameObjects(cmd, m_gameObjects, camera);
       m_renderer.endSwapchainRenderPass(cmd);
       m_renderer.endFrame();
     }
@@ -98,7 +106,7 @@ void App::loadGameObjects()
 
   auto cube = GameObject::createGameObject();
   cube.model = cubeModel;
-  cube.transform.translation = { 0.0f, 0.0f, 0.5f };
+  cube.transform.translation = { 0.0f, 0.0f, -2.5f };
   cube.transform.scale = { 0.5f, 0.5f, 0.5f };
   m_gameObjects.push_back(std::move(cube));
 }
