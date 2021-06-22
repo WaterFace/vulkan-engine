@@ -16,7 +16,7 @@ namespace ve {
 
 App::App() {
   loadGameObjects();
-  // KeyInput::init(m_window.window());
+  KeyInput::init(m_window.window());
 
   // m_camera.setPerspectiveProjection(45.0f, m_renderer.getAspectRatio(), 0.1f, 10.0f);
 }

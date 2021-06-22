@@ -16,15 +16,15 @@ public:
   void setPerspectiveProjection(float vfov, float aspect, float near, float far);
 
   const glm::mat4 &getProjection() const { return m_projection; }
-  const glm::mat4 &getView() const;
+  const glm::mat4 getView() const;
 
   void update();
 
 private:
-  float m_speed{1.0f};
-  // KeyInput keyInput{{'W', 'S', 'A', 'D'}};
+  float m_speed{0.01f};
+  KeyInput keyInput{{'W', 'S', 'A', 'D'}};
   glm::mat4 m_projection{1.0f};
-  // TransformComponent transform;
+  TransformComponent transform;
 };
 
 } // namespace ve
