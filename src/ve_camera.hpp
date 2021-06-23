@@ -43,7 +43,7 @@ private:
   glm::vec3 m_left{-1.0f, 0.0f, 0.0f};
 
   void recalculateView();
-  // TransformComponent transform;
+  void recalculateDirections();
 };
 
 } // namespace ve

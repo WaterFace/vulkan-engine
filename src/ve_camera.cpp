@@ -28,22 +28,22 @@ void Camera::rotate(float yaw, float pitch) {
   m_yaw += yaw;
   m_pitch -= pitch;
   m_pitch = glm::clamp(m_pitch, -glm::half_pi<float>() * 0.98f, glm::half_pi<float>() * 0.98f);
+
+  recalculateDirections();
   recalculateView();
-  m_forward = glm::rotate(m_forward, yaw, m_up);
-  m_forward = glm::rotate(m_forward, -pitch, m_left);
-  m_left = glm::cross(m_forward, m_up);
 }
 
-void Camera::recalculateView() {
-  glm::mat4 m{1.0f};
-
-  m = glm::translate(m, m_position);
-  m = glm::rotate(m, m_yaw, {0.0f, -1.0f, 0.0f});
-  m = glm::rotate(m, m_pitch, {-1.0f, 0.0f, 0.0f});
-  // m = glm::rotate(m, m_roll, {0.0f, 0.0f, -1.0f});
-
-  m_view = glm::inverse(m);
+// Call this BEFORE calling recalculateView()
+void Camera::recalculateDirections() {
+  glm::vec3 forward{0.0f, 0.0f, -1.0f};
+  glm::vec3 left{-1.0f, 0.0f, 0.0f};
+  glm::vec3 up{0.0f, -1.0f, 0.0f};
+  m_forward = glm::rotate(forward, m_pitch, left);
+  m_forward = glm::rotate(m_forward, m_yaw, up);
+  m_left = glm::normalize(glm::cross(m_forward, m_up));
 }
+
+void Camera::recalculateView() { m_view = glm::lookAt(m_position, m_position + m_forward, {0.0f, 1.0f, 0.0f}); }
 
 void Camera::update(float dt) {
   float speed = m_speed;
@@ -54,24 +54,30 @@ void Camera::update(float dt) {
     speed = m_speed;
   }
 
+  glm::vec3 inputAxis{0.0f, 0.0f, 0.0f};
+
   if (m_keyInput.isKeyDown('W')) {
-    translate(m_forward * speed * dt);
+    inputAxis += m_forward;
   }
   if (m_keyInput.isKeyDown('S')) {
-    translate(-m_forward * speed * dt);
+    inputAxis += -m_forward;
   }
   if (m_keyInput.isKeyDown('A')) {
-    translate(m_left * speed * dt);
+    inputAxis += m_left;
   }
   if (m_keyInput.isKeyDown('D')) {
-    translate(-m_left * speed * dt);
+    inputAxis += -m_left;
   }
   if (m_keyInput.isKeyDown(GLFW_KEY_SPACE)) {
-    translate(m_up * speed * dt);
+    inputAxis += m_up;
   }
   if (m_keyInput.isKeyDown(GLFW_KEY_LEFT_CONTROL)) {
-    translate(-m_up * speed * dt);
+    inputAxis += -m_up;
   }
+
+  inputAxis = glm::clamp(inputAxis, {-1.0, -1.0, -1.0}, {1.0, 1.0, 1.0});
+
+  translate(inputAxis * speed * dt);
 
   static bool previousState = false;
   bool currentState = m_keyInput.isKeyDown(GLFW_KEY_ESCAPE);
