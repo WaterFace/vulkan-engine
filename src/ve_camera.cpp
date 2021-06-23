@@ -30,13 +30,16 @@ void Camera::update(float dt) {
     transform.translation.x -= m_speed * dt;
   }
 
-  if (m_keyInput.isKeyDown(GLFW_KEY_ESCAPE)) {
+  static bool previousState = false;
+  bool currentState = m_keyInput.isKeyDown(GLFW_KEY_ESCAPE);
+  if (currentState && !previousState) {
     if (MouseInput::getInputMode() == MouseInput::InputMode::Raw) {
       MouseInput::setInputMode(MouseInput::InputMode::Absolute);
     } else if (MouseInput::getInputMode() == MouseInput::InputMode::Absolute) {
       MouseInput::setInputMode(MouseInput::InputMode::Raw);
     }
   }
+  previousState = currentState;
 
   static double prevX = m_mouseInput.x();
   static double prevY = m_mouseInput.y();
@@ -45,8 +48,10 @@ void Camera::update(float dt) {
   prevX = m_mouseInput.x();
   prevY = m_mouseInput.y();
 
-  transform.rotation.y += x * 0.01f;
-  transform.rotation.x += y * -0.01f;
+  constexpr float SENSITIVITY = 0.005;
+
+  transform.rotation.y += x * SENSITIVITY;
+  transform.rotation.x += y * SENSITIVITY;
 }
 
 } // namespace ve
