@@ -22,7 +22,7 @@ public:
 
 private:
   float m_speed{1.0f};
-  MouseInput m_mouseInput{{}, MouseInput::InputMode::Raw, true, true};
+  MouseInput m_mouseInput{{}, true, true};
   KeyInput m_keyInput{{'W', 'S', 'A', 'D', GLFW_KEY_ESCAPE}};
   glm::mat4 m_projection{1.0f};
   TransformComponent transform;

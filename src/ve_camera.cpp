@@ -50,8 +50,11 @@ void Camera::update(float dt) {
 
   constexpr float SENSITIVITY = 0.005;
 
-  transform.rotation.y += x * SENSITIVITY;
-  transform.rotation.x += y * SENSITIVITY;
+  if (MouseInput::getInputMode() == MouseInput::InputMode::Raw) {
+    transform.rotation.y += x * SENSITIVITY;
+    transform.rotation.x -= y * SENSITIVITY;
+    transform.rotation.x = glm::clamp(transform.rotation.x, -glm::half_pi<float>(), glm::half_pi<float>());
+  }
 }
 
 } // namespace ve
