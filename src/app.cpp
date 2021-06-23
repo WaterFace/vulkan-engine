@@ -112,11 +112,13 @@ std::unique_ptr<Model> createCubeModel(Device &device, glm::vec3 offset) {
 void App::loadGameObjects() {
   std::shared_ptr<Model> cubeModel = createCubeModel(m_device, {0.0f, 0.0f, 0.0f});
 
-  auto cube = GameObject::createGameObject();
-  cube.model = cubeModel;
-  cube.transform.translation = {0.0f, 0.0f, -2.5f};
-  cube.transform.scale = {0.5f, 0.5f, 0.5f};
-  m_gameObjects.push_back(std::move(cube));
+  for (int i = 0; i < 100; i++) {
+    auto cube = GameObject::createGameObject();
+    cube.model = cubeModel;
+    cube.transform.translation = {(i / 10) + 0.0f, (i % 10) + 0.0f, -2.5f};
+    cube.transform.scale = {0.5f, 0.5f, 0.5f};
+    m_gameObjects.push_back(std::move(cube));
+  }
 }
 
 } // namespace ve
