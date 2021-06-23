@@ -45,6 +45,8 @@ set(SOURCES
     src/ve_camera.cpp
     src/ve_input.hpp
     src/ve_input.cpp
+    src/ve_timer.hpp
+    src/ve_timer.cpp
 
     src/simple_render_system.hpp
     src/simple_render_system.cpp
