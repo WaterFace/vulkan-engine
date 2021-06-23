@@ -17,6 +17,7 @@ namespace ve {
 App::App() {
   loadGameObjects();
   KeyInput::init(m_window.window());
+  MouseInput::init(m_window.window());
 }
 
 App::~App() {}
