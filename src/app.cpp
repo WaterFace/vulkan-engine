@@ -17,8 +17,6 @@ namespace ve {
 App::App() {
   loadGameObjects();
   KeyInput::init(m_window.window());
-
-  // m_camera.setPerspectiveProjection(45.0f, m_renderer.getAspectRatio(), 0.1f, 10.0f);
 }
 
 App::~App() {}
@@ -28,13 +26,13 @@ void App::run() {
 
   while (!m_window.shouldClose()) {
     glfwPollEvents();
+    m_timer.update();
 
-    m_camera.update();
-    // if (m_window.wasWindowResized()) {
+    m_camera.update(m_timer.dt());
+
     float aspect = m_renderer.getAspectRatio();
     // camera.setOrthographicProjection(-aspect, aspect, -1, 1, -1, 1);
     m_camera.setPerspectiveProjection(45.0f, aspect, 0.1f, 10.0f);
-    // }
 
     if (auto cmd = m_renderer.beginFrame()) {
       m_renderer.beginSwapchainRenderPass(cmd);

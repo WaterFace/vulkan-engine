@@ -15,18 +15,18 @@ void Camera::setPerspectiveProjection(float fovy, float aspect, float near, floa
 
 const glm::mat4 Camera::getView() const { return transform.mat4(); }
 
-void Camera::update() {
+void Camera::update(float dt) {
   if (keyInput.isKeyDown('W')) {
-    transform.translation.z += m_speed;
+    transform.translation.z += m_speed * dt;
   }
   if (keyInput.isKeyDown('S')) {
-    transform.translation.z -= m_speed;
+    transform.translation.z -= m_speed * dt;
   }
   if (keyInput.isKeyDown('A')) {
-    transform.translation.x += m_speed;
+    transform.translation.x += m_speed * dt;
   }
   if (keyInput.isKeyDown('D')) {
-    transform.translation.x -= m_speed;
+    transform.translation.x -= m_speed * dt;
   }
 }
 

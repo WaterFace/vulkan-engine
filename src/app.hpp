@@ -4,6 +4,7 @@
 #include "ve_device.hpp"
 #include "ve_game_object.hpp"
 #include "ve_renderer.hpp"
+#include "ve_timer.hpp"
 #include "ve_window.hpp"
 
 #include <memory>
@@ -31,6 +32,7 @@ private:
   Renderer m_renderer{m_window, m_device};
 
   Camera m_camera{};
+  Timer m_timer{};
 
   std::vector<GameObject> m_gameObjects;
 };

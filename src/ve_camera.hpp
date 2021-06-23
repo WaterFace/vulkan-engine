@@ -18,10 +18,10 @@ public:
   const glm::mat4 &getProjection() const { return m_projection; }
   const glm::mat4 getView() const;
 
-  void update();
+  void update(float dt);
 
 private:
-  float m_speed{0.01f};
+  float m_speed{1.0f};
   KeyInput keyInput{{'W', 'S', 'A', 'D'}};
   glm::mat4 m_projection{1.0f};
   TransformComponent transform;
