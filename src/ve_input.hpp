@@ -31,7 +31,7 @@ class MouseInput {
 public:
   enum InputMode { None, Raw, Absolute };
 
-  MouseInput(std::vector<int> buttonsToMonitor, InputMode modeToWatch, bool position, bool scroll);
+  MouseInput(std::vector<int> buttonsToMonitor, bool position, bool scroll);
   MouseInput(std::vector<int> buttonsToMonitor);
   ~MouseInput();
 
@@ -52,7 +52,6 @@ private:
   bool m_enabled;
   bool m_watchPosition;
   bool m_watchScroll;
-  InputMode m_modeToWatch;
   void setIsButtonDown(int button, bool isDown);
   void setMousePosition(double x, double y);
   void setScrollOffset(double x, double y);

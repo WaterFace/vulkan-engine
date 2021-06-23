@@ -82,8 +82,8 @@ void MouseInput::init(GLFWwindow *window) {
   MouseInput::setInputMode(Absolute);
 }
 
-MouseInput::MouseInput(std::vector<int> buttonsToMonitor, InputMode modeToWatch, bool position, bool scroll)
-    : m_enabled{true}, m_modeToWatch{modeToWatch}, m_watchPosition{position},
+MouseInput::MouseInput(std::vector<int> buttonsToMonitor, bool position, bool scroll)
+    : m_enabled{true}, m_watchPosition{position},
       m_watchScroll{scroll}, m_xPos{0.0}, m_yPos{0.0}, m_xOffset{0.0}, m_yOffset{0.0} {
   for (int button : buttonsToMonitor) {
     m_buttons[button] = false;
@@ -93,7 +93,7 @@ MouseInput::MouseInput(std::vector<int> buttonsToMonitor, InputMode modeToWatch,
 }
 
 MouseInput::MouseInput(std::vector<int> buttonsToMonitor)
-    : m_enabled{true}, m_modeToWatch{MouseInput::InputMode::None}, m_watchScroll{false},
+    : m_enabled{true}, m_watchScroll{false},
       m_watchPosition{false}, m_xPos{0.0}, m_yPos{0.0}, m_xOffset{0.0}, m_yOffset{0.0} {
   for (int button : buttonsToMonitor) {
     m_buttons[button] = false;
@@ -126,12 +126,9 @@ void MouseInput::setIsButtonDown(int button, bool isDown) {
 }
 
 void MouseInput::setMousePosition(double x, double y) {
-  if (m_watchPosition && MouseInput::m_inputMode == m_modeToWatch) {
+  if (m_watchPosition) {
     m_xPos = x;
     m_yPos = y;
-  } else {
-    m_xPos = 0.0;
-    m_yPos = 0.0;
   }
 }
 void MouseInput::setScrollOffset(double x, double y) {
