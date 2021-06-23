@@ -1,5 +1,10 @@
 #include "ve_camera.hpp"
 
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/rotate_vector.hpp>
+
 #include <cassert>
 #include <iostream>
 #include <limits>
@@ -14,20 +19,58 @@ void Camera::setPerspectiveProjection(float fovy, float aspect, float near, floa
   m_projection = glm::perspective(fovy, aspect, near, far);
 }
 
-const glm::mat4 Camera::getView() const { return transform.mat4(); }
+void Camera::translate(glm::vec3 translation) {
+  m_position += translation;
+  recalculateView();
+}
+
+void Camera::rotate(float yaw, float pitch) {
+  m_yaw += yaw;
+  m_pitch -= pitch;
+  m_pitch = glm::clamp(m_pitch, -glm::half_pi<float>() * 0.98f, glm::half_pi<float>() * 0.98f);
+  recalculateView();
+  m_forward = glm::rotate(m_forward, yaw, m_up);
+  m_forward = glm::rotate(m_forward, -pitch, m_left);
+  m_left = glm::cross(m_forward, m_up);
+}
+
+void Camera::recalculateView() {
+  glm::mat4 m{1.0f};
+
+  m = glm::translate(m, m_position);
+  m = glm::rotate(m, m_yaw, {0.0f, -1.0f, 0.0f});
+  m = glm::rotate(m, m_pitch, {-1.0f, 0.0f, 0.0f});
+  // m = glm::rotate(m, m_roll, {0.0f, 0.0f, -1.0f});
+
+  m_view = glm::inverse(m);
+}
 
 void Camera::update(float dt) {
+  float speed = m_speed;
+
+  if (m_keyInput.isKeyDown(GLFW_KEY_LEFT_SHIFT)) {
+    speed = m_speed * m_sprintFactor;
+  } else {
+    speed = m_speed;
+  }
+
   if (m_keyInput.isKeyDown('W')) {
-    transform.translation.z += m_speed * dt;
+    translate(m_forward * speed * dt);
   }
   if (m_keyInput.isKeyDown('S')) {
-    transform.translation.z -= m_speed * dt;
+    translate(-m_forward * speed * dt);
   }
   if (m_keyInput.isKeyDown('A')) {
-    transform.translation.x += m_speed * dt;
+    translate(m_left * speed * dt);
   }
   if (m_keyInput.isKeyDown('D')) {
-    transform.translation.x -= m_speed * dt;
+    translate(-m_left * speed * dt);
+  }
+  if (m_keyInput.isKeyDown(GLFW_KEY_SPACE)) {
+    translate(m_up * speed * dt);
+  }
+  if (m_keyInput.isKeyDown(GLFW_KEY_LEFT_CONTROL)) {
+    translate(-m_up * speed * dt);
   }
 
   static bool previousState = false;
@@ -51,9 +94,7 @@ void Camera::update(float dt) {
   constexpr float SENSITIVITY = 0.005;
 
   if (MouseInput::getInputMode() == MouseInput::InputMode::Raw) {
-    transform.rotation.y += x * SENSITIVITY;
-    transform.rotation.x -= y * SENSITIVITY;
-    transform.rotation.x = glm::clamp(transform.rotation.x, -glm::half_pi<float>(), glm::half_pi<float>());
+    rotate(x * SENSITIVITY, y * SENSITIVITY);
   }
 }
 
