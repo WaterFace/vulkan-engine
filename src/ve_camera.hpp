@@ -20,6 +20,8 @@ public:
   const glm::vec3 &forward() const { return m_forward; }
   const glm::vec3 &up() const { return m_up; }
 
+  const float aspect() const { return m_aspect; }
+
   void rotate(float yaw, float pitch);
   void translate(glm::vec3 translation);
 
@@ -33,6 +35,7 @@ private:
       {'W', 'S', 'A', 'D', GLFW_KEY_SPACE, GLFW_KEY_LEFT_CONTROL, GLFW_KEY_LEFT_SHIFT, GLFW_KEY_ESCAPE}};
   glm::mat4 m_projection{1.0f};
   glm::mat4 m_view{1.0f};
+  float m_aspect;
 
   glm::vec3 m_position{};
   float m_yaw{0.0f};

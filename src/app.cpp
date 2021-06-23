@@ -18,6 +18,10 @@ App::App() {
   loadGameObjects();
   KeyInput::init(m_window.window());
   MouseInput::init(m_window.window());
+
+  float aspect = m_renderer.getAspectRatio();
+  // camera.setOrthographicProjection(-aspect, aspect, -1, 1, -1, 1);
+  m_camera.setPerspectiveProjection(45.0f, aspect, 0.01f, 100.0f);
 }
 
 App::~App() {}
@@ -30,10 +34,11 @@ void App::run() {
     m_timer.update();
 
     m_camera.update(m_timer.dt());
-
     float aspect = m_renderer.getAspectRatio();
-    // camera.setOrthographicProjection(-aspect, aspect, -1, 1, -1, 1);
-    m_camera.setPerspectiveProjection(45.0f, aspect, 0.1f, 10.0f);
+    if (glm::abs(m_camera.aspect() - aspect) > glm::epsilon<float>()) {
+      std::cout << "Aspect ratio changed from " << m_camera.aspect() << " to " << aspect << std::endl;
+      m_camera.setPerspectiveProjection(45.0f, aspect, 0.01f, 100.0f);
+    }
 
     if (auto cmd = m_renderer.beginFrame()) {
       m_renderer.beginSwapchainRenderPass(cmd);

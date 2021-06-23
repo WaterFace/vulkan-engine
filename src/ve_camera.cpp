@@ -13,10 +13,12 @@ namespace ve {
 
 void Camera::setOrthographicProjection(float left, float right, float top, float bottom, float near, float far) {
   m_projection = glm::ortho(left, right, bottom, top);
+  m_aspect = (right - left) / (top - bottom);
 }
 
 void Camera::setPerspectiveProjection(float fovy, float aspect, float near, float far) {
   m_projection = glm::perspective(fovy, aspect, near, far);
+  m_aspect = aspect;
 }
 
 void Camera::translate(glm::vec3 translation) {
