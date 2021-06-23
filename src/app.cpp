@@ -20,7 +20,6 @@ App::App() {
   MouseInput::init(m_window.window());
 
   float aspect = m_renderer.getAspectRatio();
-  // camera.setOrthographicProjection(-aspect, aspect, -1, 1, -1, 1);
   m_camera.setPerspectiveProjection(45.0f, aspect, 0.01f, 100.0f);
 }
 
