@@ -23,7 +23,9 @@ function(add_shader TARGET SHADER)
     target_sources(${TARGET} PRIVATE ${current-output-path})
 endfunction(add_shader)
 
-set(SOURCES 
+set(SOURCES
+    src/vk_mem_alloc.h
+
     src/main.cpp
     src/ve_window.hpp
     src/ve_window.cpp
