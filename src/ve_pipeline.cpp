@@ -9,22 +9,19 @@
 
 namespace ve {
 
-Pipeline::Pipeline(Device& device, const std::string& vertFilepath, const std::string& fragFilepath,
-    const PipelineConfigInfo& configInfo)
-    : m_device(device)
-{
+Pipeline::Pipeline(Device &device, const std::string &vertFilepath, const std::string &fragFilepath,
+                   const PipelineConfigInfo &configInfo)
+    : m_device(device) {
   createGraphicsPipeline(vertFilepath, fragFilepath, configInfo);
 }
 
-Pipeline::~Pipeline()
-{
+Pipeline::~Pipeline() {
   vkDestroyShaderModule(m_device.device(), m_vertShaderModule, nullptr);
   vkDestroyShaderModule(m_device.device(), m_fragShaderModule, nullptr);
   vkDestroyPipeline(m_device.device(), m_graphicsPipeline, nullptr);
 }
 
-std::vector<char> Pipeline::readFile(const std::string& filepath)
-{
+std::vector<char> Pipeline::readFile(const std::string &filepath) {
   std::ifstream file(filepath, std::ios::ate | std::ios::binary);
 
   if (!file.is_open()) {
@@ -41,15 +38,13 @@ std::vector<char> Pipeline::readFile(const std::string& filepath)
   return buffer;
 }
 
-void Pipeline::createGraphicsPipeline(
-    const std::string& vertFilepath, const std::string& fragFilepath, const PipelineConfigInfo& configInfo)
-{
-  assert(configInfo.pipelineLayout != VK_NULL_HANDLE
-      && "Cannot create graphics pipeline: no pipelineLayout provided in "
+void Pipeline::createGraphicsPipeline(const std::string &vertFilepath, const std::string &fragFilepath,
+                                      const PipelineConfigInfo &configInfo) {
+  assert(configInfo.pipelineLayout != VK_NULL_HANDLE &&
+         "Cannot create graphics pipeline: no pipelineLayout provided in "
          "configInfo");
-  assert(configInfo.renderPass != VK_NULL_HANDLE
-      && "Cannot create graphics pipeline: no renderPass provided in "
-         "configInfo");
+  assert(configInfo.renderPass != VK_NULL_HANDLE && "Cannot create graphics pipeline: no renderPass provided in "
+                                                    "configInfo");
 
   auto vertCode = readFile(vertFilepath);
   auto fragCode = readFile(fragFilepath);
@@ -60,7 +55,7 @@ void Pipeline::createGraphicsPipeline(
   createShaderModule(vertCode, &m_vertShaderModule);
   createShaderModule(fragCode, &m_fragShaderModule);
 
-  VkPipelineShaderStageCreateInfo shaderStages[2] {};
+  VkPipelineShaderStageCreateInfo shaderStages[2]{};
 
   shaderStages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
   shaderStages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
@@ -79,14 +74,14 @@ void Pipeline::createGraphicsPipeline(
   auto bindingDescriptions = Model::Vertex::getBindingDescriptions();
   auto attributeDescriptions = Model::Vertex::getAttributeDescriptions();
 
-  VkPipelineVertexInputStateCreateInfo vertexInputInfo {};
+  VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
   vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
   vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
   vertexInputInfo.vertexBindingDescriptionCount = static_cast<uint32_t>(bindingDescriptions.size());
   vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
   vertexInputInfo.pVertexBindingDescriptions = bindingDescriptions.data();
 
-  VkGraphicsPipelineCreateInfo pipelineInfo {};
+  VkGraphicsPipelineCreateInfo pipelineInfo{};
   pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
   pipelineInfo.stageCount = 2;
   pipelineInfo.pStages = shaderStages;
@@ -106,26 +101,24 @@ void Pipeline::createGraphicsPipeline(
   pipelineInfo.basePipelineIndex = -1;
   pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
-  if (vkCreateGraphicsPipelines(m_device.device(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_graphicsPipeline)
-      != VK_SUCCESS) {
+  if (vkCreateGraphicsPipelines(m_device.device(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_graphicsPipeline) !=
+      VK_SUCCESS) {
     throw std::runtime_error("Failed to create graphics pipeline");
   }
 }
 
-void Pipeline::createShaderModule(const std::vector<char>& code, VkShaderModule* shaderModule)
-{
-  VkShaderModuleCreateInfo info {};
+void Pipeline::createShaderModule(const std::vector<char> &code, VkShaderModule *shaderModule) {
+  VkShaderModuleCreateInfo info{};
   info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
   info.codeSize = code.size();
-  info.pCode = reinterpret_cast<const uint32_t*>(code.data());
+  info.pCode = reinterpret_cast<const uint32_t *>(code.data());
 
   if (vkCreateShaderModule(m_device.device(), &info, nullptr, shaderModule) != VK_SUCCESS) {
     throw std::runtime_error("Failed to create shader module");
   }
 }
 
-void Pipeline::defaultPipelineConfigInfo(PipelineConfigInfo& configInfo)
-{
+void Pipeline::defaultPipelineConfigInfo(PipelineConfigInfo &configInfo) {
   configInfo.inputAssemblyInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
   configInfo.inputAssemblyInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
   configInfo.inputAssemblyInfo.primitiveRestartEnable = VK_FALSE;
@@ -156,8 +149,8 @@ void Pipeline::defaultPipelineConfigInfo(PipelineConfigInfo& configInfo)
   configInfo.multisampleInfo.alphaToCoverageEnable = VK_FALSE;
   configInfo.multisampleInfo.alphaToOneEnable = VK_FALSE;
 
-  configInfo.colorBlendAttachment.colorWriteMask
-      = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+  configInfo.colorBlendAttachment.colorWriteMask =
+      VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
   configInfo.colorBlendAttachment.blendEnable = VK_FALSE;
   configInfo.colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
   configInfo.colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
@@ -187,7 +180,7 @@ void Pipeline::defaultPipelineConfigInfo(PipelineConfigInfo& configInfo)
   configInfo.depthStencilInfo.front = {};
   configInfo.depthStencilInfo.back = {};
 
-  configInfo.dynamicStateEnables = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
+  configInfo.dynamicStateEnables = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
 
   configInfo.dynamicStateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
   configInfo.dynamicStateInfo.dynamicStateCount = static_cast<uint32_t>(configInfo.dynamicStateEnables.size());
@@ -195,8 +188,7 @@ void Pipeline::defaultPipelineConfigInfo(PipelineConfigInfo& configInfo)
   configInfo.dynamicStateInfo.flags = 0;
 }
 
-void Pipeline::bind(VkCommandBuffer cmd)
-{
+void Pipeline::bind(VkCommandBuffer cmd) {
   vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipeline);
 }
 

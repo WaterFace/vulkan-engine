@@ -42,6 +42,7 @@ void SimpleRenderSystem::createPipelineLayout() {
 void SimpleRenderSystem::createPipeline(VkRenderPass renderPass) {
   PipelineConfigInfo pipelineConfig{};
   Pipeline::defaultPipelineConfigInfo(pipelineConfig);
+  pipelineConfig.multisampleInfo.rasterizationSamples = m_device.getSampleCount();
   pipelineConfig.renderPass = renderPass;
   pipelineConfig.pipelineLayout = m_pipelineLayout;
   m_pipeline =

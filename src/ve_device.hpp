@@ -23,48 +23,49 @@ struct QueueFamilyIndices {
 };
 
 class Device {
-  public:
+public:
 #ifdef NDEBUG
   const bool enableValidationLayers = false;
 #else
   const bool enableValidationLayers = true;
 #endif
 
-  Device(Window& window);
+  Device(Window &window);
   ~Device();
 
   // Not copyable or movable
-  Device(const Device&) = delete;
-  Device& operator=(const Device&) = delete;
-  Device(Device&&) = delete;
-  Device& operator=(Device&&) = delete;
+  Device(const Device &) = delete;
+  Device &operator=(const Device &) = delete;
+  Device(Device &&) = delete;
+  Device &operator=(Device &&) = delete;
 
   VkCommandPool getCommandPool() { return m_commandPool; }
   VkDevice device() { return m_device; }
   VkSurfaceKHR surface() { return m_surface; }
   VkQueue graphicsQueue() { return m_graphicsQueue; }
   VkQueue presentQueue() { return m_presentQueue; }
+  VkSampleCountFlagBits getSampleCount() { return m_msaaSamples; }
 
   SwapchainSupportDetails getSwapchainSupport() { return querySwapchainSupport(m_physicalDevice); }
   uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
   QueueFamilyIndices findPhysicalQueueFamilies() { return findQueueFamilies(m_physicalDevice); }
-  VkFormat findSupportedFormat(
-      const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
+  VkFormat findSupportedFormat(const std::vector<VkFormat> &candidates, VkImageTiling tiling,
+                               VkFormatFeatureFlags features);
 
   // Buffer Helper Functions
-  void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer,
-      VkDeviceMemory& bufferMemory);
+  void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer &buffer,
+                    VkDeviceMemory &bufferMemory);
   VkCommandBuffer beginSingleTimeCommands();
   void endSingleTimeCommands(VkCommandBuffer commandBuffer);
   void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
   void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t layerCount);
 
-  void createImageWithInfo(const VkImageCreateInfo& imageInfo, VkMemoryPropertyFlags properties, VkImage& image,
-      VkDeviceMemory& imageMemory);
+  void createImageWithInfo(const VkImageCreateInfo &imageInfo, VkMemoryPropertyFlags properties, VkImage &image,
+                           VkDeviceMemory &imageMemory);
 
   VkPhysicalDeviceProperties properties;
 
-  private:
+private:
   void createInstance();
   void setupDebugMessenger();
   void createSurface();
@@ -74,18 +75,19 @@ class Device {
 
   // helper functions
   bool isDeviceSuitable(VkPhysicalDevice device);
-  std::vector<const char*> getRequiredExtensions();
+  std::vector<const char *> getRequiredExtensions();
   bool checkValidationLayerSupport();
   QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
-  void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
+  void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo);
   void hasGflwRequiredInstanceExtensions();
   bool checkDeviceExtensionSupport(VkPhysicalDevice device);
   SwapchainSupportDetails querySwapchainSupport(VkPhysicalDevice device);
+  VkSampleCountFlagBits getMaxUseableSampleCount();
 
   VkInstance m_instance;
   VkDebugUtilsMessengerEXT m_debugMessenger;
   VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
-  Window& m_window;
+  Window &m_window;
   VkCommandPool m_commandPool;
 
   VkDevice m_device;
@@ -93,8 +95,10 @@ class Device {
   VkQueue m_graphicsQueue;
   VkQueue m_presentQueue;
 
-  const std::vector<const char*> validationLayers = { "VK_LAYER_KHRONOS_validation" };
-  const std::vector<const char*> deviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+  VkSampleCountFlagBits m_msaaSamples{VK_SAMPLE_COUNT_1_BIT};
+
+  const std::vector<const char *> validationLayers = {"VK_LAYER_KHRONOS_validation"};
+  const std::vector<const char *> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 };
 
 } // namespace ve
