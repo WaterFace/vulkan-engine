@@ -62,3 +62,6 @@ _deps
 
 # Shaders
 *.spv
+
+# Debug symbols
+*.pdb
