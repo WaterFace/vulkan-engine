@@ -58,7 +58,6 @@ MouseInput::InputMode MouseInput::m_inputMode = MouseInput::InputMode::Absolute;
 
 void MouseInput::setInputMode(InputMode mode) {
   assert(m_window != nullptr && "Can't set input mode until MouseInput::init() has been called.");
-  assert(mode != InputMode::None && "Can't set input mode to InputMode::None");
   switch (mode) {
   case InputMode::Raw:
     assert(glfwRawMouseMotionSupported() && "This device does not support raw mouse motion");

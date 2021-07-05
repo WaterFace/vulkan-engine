@@ -29,7 +29,7 @@ private:
 
 class MouseInput {
 public:
-  enum InputMode { None, Raw, Absolute };
+  enum InputMode { Raw, Absolute };
 
   MouseInput(std::vector<int> buttonsToMonitor, bool position, bool scroll);
   MouseInput(std::vector<int> buttonsToMonitor);
