@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ve_buffer.hpp"
 #include "ve_device.hpp"
 
 #define GLM_FORCE_RADIANS
@@ -16,10 +17,8 @@ public:
     glm::vec3 position;
     glm::vec3 color;
 
-    static std::vector<VkVertexInputBindingDescription>
-    getBindingDescriptions();
-    static std::vector<VkVertexInputAttributeDescription>
-    getAttributeDescriptions();
+    static std::vector<VkVertexInputBindingDescription> getBindingDescriptions();
+    static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions();
   };
   Model(const Model &) = delete;
   Model &operator=(const Model &) = delete;
@@ -32,8 +31,7 @@ public:
 
 private:
   Device &m_device;
-  VkBuffer m_vertexBuffer;
-  VkDeviceMemory m_vertexBufferMemory;
+  Buffer m_vertexBuffer;
   uint32_t m_vertexCount;
 
   void createVertexBuffers(const std::vector<Vertex> &vertices);

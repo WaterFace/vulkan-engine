@@ -1,5 +1,8 @@
 #include "ve_device.hpp"
 
+#define VMA_IMPLEMENTATION
+#include "vk_mem_alloc.h"
+
 // std headers
 #include <cstring>
 #include <iostream>
@@ -44,6 +47,7 @@ Device::Device(Window &window) : m_window{window} {
   createSurface();
   pickPhysicalDevice();
   createLogicalDevice();
+  createAllocator();
   createCommandPool();
 }
 
@@ -169,6 +173,15 @@ void Device::createLogicalDevice() {
 
   vkGetDeviceQueue(m_device, indices.graphicsFamily, 0, &m_graphicsQueue);
   vkGetDeviceQueue(m_device, indices.presentFamily, 0, &m_presentQueue);
+}
+
+void Device::createAllocator() {
+  VmaAllocatorCreateInfo info{};
+  info.device = m_device;
+  info.instance = m_instance;
+  info.physicalDevice = m_physicalDevice;
+
+  vmaCreateAllocator(&info, &m_allocator);
 }
 
 void Device::createCommandPool() {
@@ -412,30 +425,28 @@ uint32_t Device::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags prope
 }
 
 void Device::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties,
-                          VkBuffer &buffer, VkDeviceMemory &bufferMemory) {
+                          Buffer &buffer) {
   VkBufferCreateInfo bufferInfo{};
   bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
   bufferInfo.size = size;
   bufferInfo.usage = usage;
   bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-  if (vkCreateBuffer(m_device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS) {
-    throw std::runtime_error("failed to create vertex buffer!");
+  VmaAllocationCreateInfo allocCreateInfo{};
+  // TODO: don't hardcode this
+  allocCreateInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU;
+  allocCreateInfo.requiredFlags = properties;
+
+  if (vmaCreateBuffer(m_allocator, &bufferInfo, &allocCreateInfo, &buffer.buffer, &buffer.allocation, nullptr) !=
+      VK_SUCCESS) {
+    throw std::runtime_error("Failed to create buffer!");
   }
+}
 
-  VkMemoryRequirements memRequirements;
-  vkGetBufferMemoryRequirements(m_device, buffer, &memRequirements);
-
-  VkMemoryAllocateInfo allocInfo{};
-  allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-  allocInfo.allocationSize = memRequirements.size;
-  allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties);
-
-  if (vkAllocateMemory(m_device, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS) {
-    throw std::runtime_error("failed to allocate vertex buffer memory!");
-  }
-
-  vkBindBufferMemory(m_device, buffer, bufferMemory, 0);
+void Device::destroyBuffer(Buffer buffer) {
+  vkDestroyBuffer(m_device, buffer.buffer, nullptr);
+  vkFreeMemory(m_device, buffer.allocation->GetMemory(), nullptr);
+  // vmaDestroyBuffer(m_allocator, buffer.buffer, buffer.allocation);
 }
 
 VkCommandBuffer Device::beginSingleTimeCommands() {
@@ -500,6 +511,10 @@ void Device::copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, u
 
   vkCmdCopyBufferToImage(commandBuffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
   endSingleTimeCommands(commandBuffer);
+}
+
+void Device::writeToBuffer(Buffer buffer, void *contents, VkDeviceSize size) {
+  buffer.write(m_allocator, contents, size);
 }
 
 void Device::createImageWithInfo(const VkImageCreateInfo &imageInfo, VkMemoryPropertyFlags properties, VkImage &image,
