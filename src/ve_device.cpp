@@ -1,8 +1,5 @@
 #include "ve_device.hpp"
 
-#define VMA_IMPLEMENTATION
-#include "vk_mem_alloc.h"
-
 // std headers
 #include <cstring>
 #include <iostream>
@@ -424,31 +421,6 @@ uint32_t Device::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags prope
   throw std::runtime_error("failed to find suitable memory type!");
 }
 
-void Device::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties,
-                          Buffer &buffer) {
-  VkBufferCreateInfo bufferInfo{};
-  bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-  bufferInfo.size = size;
-  bufferInfo.usage = usage;
-  bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-  VmaAllocationCreateInfo allocCreateInfo{};
-  // TODO: don't hardcode this
-  allocCreateInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU;
-  allocCreateInfo.requiredFlags = properties;
-
-  if (vmaCreateBuffer(m_allocator, &bufferInfo, &allocCreateInfo, &buffer.buffer, &buffer.allocation, nullptr) !=
-      VK_SUCCESS) {
-    throw std::runtime_error("Failed to create buffer!");
-  }
-}
-
-void Device::destroyBuffer(Buffer buffer) {
-  vkDestroyBuffer(m_device, buffer.buffer, nullptr);
-  vkFreeMemory(m_device, buffer.allocation->GetMemory(), nullptr);
-  // vmaDestroyBuffer(m_allocator, buffer.buffer, buffer.allocation);
-}
-
 VkCommandBuffer Device::beginSingleTimeCommands() {
   VkCommandBufferAllocateInfo allocInfo{};
   allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -511,10 +483,6 @@ void Device::copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, u
 
   vkCmdCopyBufferToImage(commandBuffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
   endSingleTimeCommands(commandBuffer);
-}
-
-void Device::writeToBuffer(Buffer buffer, void *contents, VkDeviceSize size) {
-  buffer.write(m_allocator, contents, size);
 }
 
 void Device::createImageWithInfo(const VkImageCreateInfo &imageInfo, VkMemoryPropertyFlags properties, VkImage &image,

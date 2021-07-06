@@ -48,6 +48,7 @@ public:
   VkQueue graphicsQueue() { return m_graphicsQueue; }
   VkQueue presentQueue() { return m_presentQueue; }
   VkSampleCountFlagBits getSampleCount() { return m_msaaSamples; }
+  VmaAllocator getAllocator() { return m_allocator; }
 
   SwapchainSupportDetails getSwapchainSupport() { return querySwapchainSupport(m_physicalDevice); }
   uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
@@ -56,13 +57,10 @@ public:
                                VkFormatFeatureFlags features);
 
   // Buffer Helper Functions
-  void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, Buffer &buffer);
-  void destroyBuffer(Buffer buffer);
   VkCommandBuffer beginSingleTimeCommands();
   void endSingleTimeCommands(VkCommandBuffer commandBuffer);
   void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
   void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t layerCount);
-  void writeToBuffer(Buffer buffer, void *contents, VkDeviceSize size);
 
   void createImageWithInfo(const VkImageCreateInfo &imageInfo, VkMemoryPropertyFlags properties, VkImage &image,
                            VkDeviceMemory &imageMemory);

@@ -7,8 +7,13 @@
 
 namespace ve {
 
-Model::Model(Device &device, const std::vector<Vertex> &vertices) : m_device{device} { createVertexBuffers(vertices); }
-Model::~Model() { m_device.destroyBuffer(m_vertexBuffer); }
+Model::Model(Device &device, const std::vector<Vertex> &vertices)
+    : m_device{device}, m_vertexBuffer{device.getAllocator()} {
+  createVertexBuffers(vertices);
+}
+Model::~Model() {
+  // The ve::Buffer should clean itself up when it falls out of scope
+}
 
 void Model::createVertexBuffers(const std::vector<Vertex> &vertices) {
   m_vertexCount = static_cast<uint32_t>(vertices.size());
@@ -16,18 +21,15 @@ void Model::createVertexBuffers(const std::vector<Vertex> &vertices) {
   assert(m_vertexCount >= 3 && "Need at least 3 vertices in a model");
 
   VkDeviceSize bufferSize = sizeof(vertices[0]) * m_vertexCount;
-  m_device.createBuffer(bufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, 0, m_vertexBuffer);
 
-  std::cout << m_vertexBuffer.buffer << std::endl;
-
-  m_device.writeToBuffer(m_vertexBuffer, (void *)vertices.data(), bufferSize);
+  m_vertexBuffer.create(bufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, 0);
+  m_vertexBuffer.write((void *)vertices.data(), bufferSize);
 }
 
 void Model::bind(VkCommandBuffer cmd) {
-  // VkBuffer buffers[] = {m_vertexBuffer.buffer};
+  VkBuffer buffers[] = {m_vertexBuffer.buffer};
   VkDeviceSize offsets[] = {0};
-  // std::cout << buffers[0] << std::endl;
-  vkCmdBindVertexBuffers(cmd, 0, 1, &m_vertexBuffer.buffer, offsets);
+  vkCmdBindVertexBuffers(cmd, 0, 1, buffers, offsets);
 }
 
 void Model::draw(VkCommandBuffer cmd) { vkCmdDraw(cmd, m_vertexCount, 1, 0, 0); }
