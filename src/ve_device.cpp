@@ -123,7 +123,8 @@ void Device::pickPhysicalDevice() {
   }
 
   vkGetPhysicalDeviceProperties(m_physicalDevice, &properties);
-  std::cout << "physical device: " << properties.deviceName << std::endl;
+  m_physicalDeviceProperties = properties;
+  std::cout << "physical device: " << getPhysicalDeviceProperties().deviceName << std::endl;
 }
 
 void Device::createLogicalDevice() {
@@ -483,6 +484,18 @@ void Device::copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, u
 
   vkCmdCopyBufferToImage(commandBuffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
   endSingleTimeCommands(commandBuffer);
+}
+
+size_t Device::padUniformBufferSize(size_t originalSize) {
+  // from https://github.com/SaschaWillems/Vulkan/tree/master/examples/dynamicuniformbuffer
+
+  // Calculate required alignment based on minimum device offset alignment
+  size_t minUboAlignment = getPhysicalDeviceProperties().limits.minUniformBufferOffsetAlignment;
+  size_t alignedSize = originalSize;
+  if (minUboAlignment > 0) {
+    alignedSize = (alignedSize + minUboAlignment - 1) & ~(minUboAlignment - 1);
+  }
+  return alignedSize;
 }
 
 void Device::createImageWithInfo(const VkImageCreateInfo &imageInfo, VkMemoryPropertyFlags properties, VkImage &image,

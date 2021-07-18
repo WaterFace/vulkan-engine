@@ -49,6 +49,7 @@ public:
   VkQueue presentQueue() { return m_presentQueue; }
   VkSampleCountFlagBits getSampleCount() { return m_msaaSamples; }
   VmaAllocator getAllocator() { return m_allocator; }
+  VkPhysicalDeviceProperties getPhysicalDeviceProperties() { return m_physicalDeviceProperties; }
 
   SwapchainSupportDetails getSwapchainSupport() { return querySwapchainSupport(m_physicalDevice); }
   uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
@@ -61,6 +62,7 @@ public:
   void endSingleTimeCommands(VkCommandBuffer commandBuffer);
   void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
   void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t layerCount);
+  size_t padUniformBufferSize(size_t originalSize);
 
   void createImageWithInfo(const VkImageCreateInfo &imageInfo, VkMemoryPropertyFlags properties, VkImage &image,
                            VkDeviceMemory &imageMemory);
@@ -86,6 +88,8 @@ private:
   bool checkDeviceExtensionSupport(VkPhysicalDevice device);
   SwapchainSupportDetails querySwapchainSupport(VkPhysicalDevice device);
   VkSampleCountFlagBits getMaxUseableSampleCount();
+
+  VkPhysicalDeviceProperties m_physicalDeviceProperties;
 
   VkInstance m_instance;
   VkDebugUtilsMessengerEXT m_debugMessenger;
