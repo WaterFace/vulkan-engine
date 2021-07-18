@@ -33,7 +33,7 @@ public:
   VkRenderPass getRenderPass() { return m_renderPass; }
   VkImageView getImageView(int index) { return m_swapchainImageViews[index]; }
   size_t imageCount() { return m_swapchainImages.size(); }
-  FrameData &getCurrentFrame() { return m_frameData[m_currentFrame]; }
+  FrameData &getCurrentFrame() { return m_frameData[m_currentFrame % MAX_FRAMES_IN_FLIGHT]; }
   VkFormat getSwapchainImageFormat() { return m_swapchainImageFormat; }
   VkExtent2D getSwapchainExtent() { return m_swapchainExtent; }
   uint32_t width() { return m_swapchainExtent.width; }
