@@ -12,6 +12,12 @@
 
 namespace ve {
 
+struct FrameData {
+  VkSemaphore imageAvailableSemaphore;
+  VkSemaphore renderFinishedSemaphore;
+  VkFence inFlightFence;
+};
+
 class Swapchain {
 public:
   static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
@@ -27,6 +33,7 @@ public:
   VkRenderPass getRenderPass() { return m_renderPass; }
   VkImageView getImageView(int index) { return m_swapchainImageViews[index]; }
   size_t imageCount() { return m_swapchainImages.size(); }
+  FrameData &getCurrentFrame() { return m_frameData[m_currentFrame]; }
   VkFormat getSwapchainImageFormat() { return m_swapchainImageFormat; }
   VkExtent2D getSwapchainExtent() { return m_swapchainExtent; }
   uint32_t width() { return m_swapchainExtent.width; }
@@ -67,6 +74,7 @@ private:
   std::vector<VkFramebuffer> m_swapchainFramebuffers;
   VkRenderPass m_renderPass;
 
+  // per-framebuffer data
   std::vector<VkImage> m_colorImages;
   std::vector<VkDeviceMemory> m_colorImageMemories;
   std::vector<VkImageView> m_colorImageViews;
@@ -75,6 +83,10 @@ private:
   std::vector<VkImageView> m_depthImageViews;
   std::vector<VkImage> m_swapchainImages;
   std::vector<VkImageView> m_swapchainImageViews;
+  std::vector<VkFence> m_imagesInFlight;
+
+  // per-frame data
+  FrameData m_frameData[MAX_FRAMES_IN_FLIGHT];
 
   Device &m_device;
   VkExtent2D m_windowExtent;
@@ -82,10 +94,6 @@ private:
   VkSwapchainKHR m_swapchain;
   std::shared_ptr<Swapchain> m_oldSwapchain;
 
-  std::vector<VkSemaphore> m_imageAvailableSemaphores;
-  std::vector<VkSemaphore> m_renderFinishedSemaphores;
-  std::vector<VkFence> m_inFlightFences;
-  std::vector<VkFence> m_imagesInFlight;
   size_t m_currentFrame = 0;
 };
 
