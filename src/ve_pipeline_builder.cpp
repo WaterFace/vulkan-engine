@@ -1,5 +1,7 @@
 #include "ve_pipeline_builder.hpp"
 
+#include <stdexcept>
+
 namespace ve {
 
 PipelineBuilder::PipelineBuilder(Device &device) : m_device{device} { defaultPipelineConfigInfo(m_configInfo); }
