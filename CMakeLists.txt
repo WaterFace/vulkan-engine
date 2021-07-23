@@ -33,6 +33,8 @@ set(SOURCES
     src/app.cpp
     src/ve_pipeline.hpp
     src/ve_pipeline.cpp
+    src/ve_pipeline_builder.hpp
+    src/ve_pipeline_builder.cpp
     src/ve_device.hpp
     src/ve_device.cpp
     src/ve_swapchain.hpp
