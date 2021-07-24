@@ -1,5 +1,8 @@
 #include "simple_render_system.hpp"
 
+#include "ve_pipeline_builder.hpp"
+#include "ve_shader.hpp"
+
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <array>
@@ -40,17 +43,31 @@ void SimpleRenderSystem::createPipelineLayout() {
 }
 
 void SimpleRenderSystem::createPipeline(VkRenderPass renderPass) {
-  PipelineConfigInfo pipelineConfig{};
-  Pipeline::defaultPipelineConfigInfo(pipelineConfig);
-  pipelineConfig.multisampleInfo.rasterizationSamples = m_device.getSampleCount();
-  pipelineConfig.renderPass = renderPass;
-  pipelineConfig.pipelineLayout = m_pipelineLayout;
-  m_pipeline =
-      std::make_unique<Pipeline>(m_device, "shaders/simple.vert.spv", "shaders/simple.frag.spv", pipelineConfig);
+
+  Shader vertexShader(m_device, "shaders/simple.vert.spv");
+  Shader fragmentShader(m_device, "shaders/simple.frag.spv");
+
+  PipelineBuilder builder(m_device);
+
+  m_pipeline = builder.addShaderStage(vertexShader.module(), VK_SHADER_STAGE_VERTEX_BIT)
+                   .addShaderStage(fragmentShader.module(), VK_SHADER_STAGE_FRAGMENT_BIT)
+                   .setSampleCount(m_device.getSampleCount())
+                   .setLayout(m_pipelineLayout)
+                   .setRenderPass(renderPass)
+                   .setVertexInput(Model::Vertex::getBindingDescriptions(), Model::Vertex::getAttributeDescriptions())
+                   .build();
+
+  // PipelineConfigInfo pipelineConfig{};
+  // Pipeline::defaultPipelineConfigInfo(pipelineConfig);
+  // pipelineConfig.multisampleInfo.rasterizationSamples = m_device.getSampleCount();
+  // pipelineConfig.renderPass = renderPass;
+  // pipelineConfig.pipelineLayout = m_pipelineLayout;
+  // m_pipeline =
+  //     std::make_unique<Pipeline>(m_device, "shaders/simple.vert.spv", "shaders/simple.frag.spv", pipelineConfig);
 }
 
-void SimpleRenderSystem::renderGameObjects(VkCommandBuffer cmd, std::vector<GameObject> &gameObjects,
-                                           const Camera &camera) {
+void SimpleRenderSystem::renderGameObjects(
+    VkCommandBuffer cmd, std::vector<GameObject> &gameObjects, const Camera &camera) {
   m_pipeline->bind(cmd);
 
   for (auto &obj : gameObjects) {
@@ -62,8 +79,9 @@ void SimpleRenderSystem::renderGameObjects(VkCommandBuffer cmd, std::vector<Game
     push.color = obj.color;
     push.mvp = camera.getProjection() * camera.getView() * obj.transform.mat4();
 
-    vkCmdPushConstants(cmd, m_pipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_VERTEX_BIT, 0,
-                       sizeof(SimplePushConstantData), &push);
+    vkCmdPushConstants(
+        cmd, m_pipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_VERTEX_BIT, 0,
+        sizeof(SimplePushConstantData), &push);
     obj.model->bind(cmd);
     obj.model->draw(cmd);
   }
