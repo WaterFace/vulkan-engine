@@ -49,6 +49,7 @@ Device::Device(Window &window) : m_window{window} {
 }
 
 Device::~Device() {
+  vmaDestroyAllocator(m_allocator);
   vkDestroyCommandPool(m_device, m_commandPool, nullptr);
   vkDestroyDevice(m_device, nullptr);
 

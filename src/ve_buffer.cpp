@@ -8,15 +8,7 @@
 
 namespace ve {
 
-Buffer::~Buffer() {
-  vkDestroyBuffer(m_allocator->m_hDevice, buffer, nullptr);
-  vkFreeMemory(m_allocator->m_hDevice, allocation->GetMemory(), nullptr);
-
-  // The following is supposed to be a convenience function
-  // for the above, but it doesn't seem to free the device memory
-  // for some reason.
-  // vmaDestroyBuffer(m_allocator, buffer, allocation);
-}
+Buffer::~Buffer() { vmaDestroyBuffer(m_allocator, buffer, allocation); }
 
 void Buffer::write(void *contents, VkDeviceSize size) {
   void *data;
