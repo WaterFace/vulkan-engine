@@ -3,6 +3,7 @@
 #include "ve_camera.hpp"
 #include "ve_device.hpp"
 #include "ve_game_object.hpp"
+#include "ve_model_loader.hpp"
 #include "ve_renderer.hpp"
 #include "ve_timer.hpp"
 #include "ve_window.hpp"
@@ -26,10 +27,12 @@ public:
 
 private:
   void loadGameObjects();
+  Model createCubeModel(Device &device, glm::vec3 offset);
 
   Window m_window{WIDTH, HEIGHT, "First App"};
   Device m_device{m_window};
   Renderer m_renderer{m_window, m_device};
+  ModelLoader m_modelLoader;
 
   Camera m_camera{};
   Timer m_timer{};

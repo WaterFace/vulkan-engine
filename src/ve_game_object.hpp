@@ -43,12 +43,13 @@ public:
 
   const id_t getID() { return m_id; }
 
-  std::shared_ptr<Model> model{};
+  Model model{};
   glm::vec3 color{};
   TransformComponent transform{};
 
 private:
-  GameObject(id_t id) : m_id{id} {}
+  GameObject(id_t id)
+      : m_id{id} {}
   id_t m_id;
 };
 

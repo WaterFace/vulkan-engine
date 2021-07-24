@@ -17,7 +17,9 @@ struct SimplePushConstantData {
   alignas(16) glm::vec3 color;
 };
 
-SimpleRenderSystem::SimpleRenderSystem(Device &device, VkRenderPass renderPass) : m_device{device} {
+SimpleRenderSystem::SimpleRenderSystem(Device &device, ModelLoader &modelLoader, VkRenderPass renderPass)
+    : m_device{device}
+    , m_modelLoader{modelLoader} {
   createPipelineLayout();
   createPipeline(renderPass);
 }
@@ -56,20 +58,16 @@ void SimpleRenderSystem::createPipeline(VkRenderPass renderPass) {
                    .setRenderPass(renderPass)
                    .setVertexInput(Model::Vertex::getBindingDescriptions(), Model::Vertex::getAttributeDescriptions())
                    .build();
-
-  // PipelineConfigInfo pipelineConfig{};
-  // Pipeline::defaultPipelineConfigInfo(pipelineConfig);
-  // pipelineConfig.multisampleInfo.rasterizationSamples = m_device.getSampleCount();
-  // pipelineConfig.renderPass = renderPass;
-  // pipelineConfig.pipelineLayout = m_pipelineLayout;
-  // m_pipeline =
-  //     std::make_unique<Pipeline>(m_device, "shaders/simple.vert.spv", "shaders/simple.frag.spv", pipelineConfig);
 }
 
 void SimpleRenderSystem::renderGameObjects(
-    VkCommandBuffer cmd, std::vector<GameObject> &gameObjects, const Camera &camera) {
+    VkCommandBuffer cmd,
+    std::vector<GameObject> &gameObjects,
+    const Camera &camera) {
   m_pipeline->bind(cmd);
 
+  m_modelLoader.bindBuffers(cmd);
+  
   for (auto &obj : gameObjects) {
     obj.transform.rotation.y = glm::mod(obj.transform.rotation.y + 0.0001f * obj.getID(), glm::two_pi<float>());
 
@@ -80,10 +78,13 @@ void SimpleRenderSystem::renderGameObjects(
     push.mvp = camera.getProjection() * camera.getView() * obj.transform.mat4();
 
     vkCmdPushConstants(
-        cmd, m_pipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_VERTEX_BIT, 0,
-        sizeof(SimplePushConstantData), &push);
-    obj.model->bind(cmd);
-    obj.model->draw(cmd);
+        cmd,
+        m_pipelineLayout,
+        VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_VERTEX_BIT,
+        0,
+        sizeof(SimplePushConstantData),
+        &push);
+    obj.model.draw(cmd);
   }
 }
 

@@ -14,7 +14,8 @@
 
 namespace ve {
 
-App::App() {
+App::App()
+    : m_modelLoader{m_device} {
   loadGameObjects();
   KeyInput::init(m_window.window());
   MouseInput::init(m_window.window());
@@ -26,7 +27,7 @@ App::App() {
 App::~App() {}
 
 void App::run() {
-  SimpleRenderSystem simpleRenderSystem{m_device, m_renderer.getSwapchainRenderPass()};
+  SimpleRenderSystem simpleRenderSystem{m_device, m_modelLoader, m_renderer.getSwapchainRenderPass()};
 
   while (!m_window.shouldClose()) {
     glfwPollEvents();
@@ -50,7 +51,7 @@ void App::run() {
   vkDeviceWaitIdle(m_device.device());
 }
 
-std::unique_ptr<Model> createCubeModel(Device &device, glm::vec3 offset) {
+Model App::createCubeModel(Device &device, glm::vec3 offset) {
   Model::Data data{};
   data.vertices = {
       // left face (white)
@@ -96,11 +97,11 @@ std::unique_ptr<Model> createCubeModel(Device &device, glm::vec3 offset) {
   data.indices = {0,  1,  2,  0,  3,  1,  4,  5,  6,  4,  7,  5,  8,  9,  10, 8,  11, 9,
                   12, 13, 14, 12, 15, 13, 16, 17, 18, 16, 19, 17, 20, 21, 22, 20, 23, 21};
 
-  return std::make_unique<Model>(device, data);
+  return m_modelLoader.load(data);
 }
 
 void App::loadGameObjects() {
-  std::shared_ptr<Model> cubeModel = createCubeModel(m_device, {0.0f, 0.0f, 0.0f});
+  Model cubeModel = createCubeModel(m_device, {0.0f, 0.0f, 0.0f});
 
   for (int i = 0; i < 100; i++) {
     auto cube = GameObject::createGameObject();
