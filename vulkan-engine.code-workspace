@@ -69,7 +69,12 @@
 			"regex": "cpp",
 			"mutex": "cpp",
 			"shared_mutex": "cpp",
-			"thread": "cpp"
+			"thread": "cpp",
+			"compare": "cpp",
+			"concepts": "cpp",
+			"numbers": "cpp",
+			"semaphore": "cpp",
+			"stop_token": "cpp"
 		}
 	}
 }
