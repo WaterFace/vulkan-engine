@@ -20,21 +20,30 @@ public:
     static std::vector<VkVertexInputBindingDescription> getBindingDescriptions();
     static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions();
   };
+
+  struct Data {
+    std::vector<Vertex> vertices{};
+    std::vector<uint32_t> indices{};
+  };
+
   Model(const Model &) = delete;
   Model &operator=(const Model &) = delete;
 
-  Model(Device &device, const std::vector<Vertex> &vertices);
+  Model(Device &device, const Model::Data &data);
   ~Model();
 
   void bind(VkCommandBuffer cmd);
   void draw(VkCommandBuffer cmd);
 
 private:
+  void createVertexBuffers(const std::vector<Vertex> &vertices);
+  void createIndexBuffers(const std::vector<uint32_t> &indices);
+
   Device &m_device;
   Buffer m_vertexBuffer;
+  Buffer m_indexBuffer;
   uint32_t m_vertexCount;
-
-  void createVertexBuffers(const std::vector<Vertex> &vertices);
+  uint32_t m_indexCount;
 };
 
 } // namespace ve
