@@ -87,7 +87,7 @@ std::unique_ptr<Pipeline> PipelineBuilder::build() {
     throw std::runtime_error("Failed to create graphics pipeline");
   }
 
-  return pipeline;
+  return std::move(std::make_unique<Pipeline>(m_device, pipeline));
 }
 
 void PipelineBuilder::defaultPipelineConfigInfo(PipelineConfigInfo &configInfo) {

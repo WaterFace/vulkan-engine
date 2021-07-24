@@ -1,7 +1,9 @@
 #pragma once
 
 #include "ve_device.hpp"
+#include "ve_pipeline.hpp"
 
+#include <memory>
 #include <vector>
 
 #include <vulkan/vulkan.h>
@@ -40,7 +42,7 @@ public:
   PipelineBuilder &setSampleCount(VkSampleCountFlagBits sampleCount);
   PipelineBuilder &setLayout(VkPipelineLayout layout);
 
-  VkPipeline build();
+  std::unique_ptr<Pipeline> build();
 
 private:
   static void defaultPipelineConfigInfo(PipelineConfigInfo &configInfo);
