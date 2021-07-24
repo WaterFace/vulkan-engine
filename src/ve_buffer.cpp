@@ -10,12 +10,14 @@ namespace ve {
 
 Buffer::~Buffer() { vmaDestroyBuffer(m_allocator, buffer, allocation); }
 
-void Buffer::write(void *contents, VkDeviceSize size) {
-  void *data;
-  vmaMapMemory(m_allocator, allocation, &data);
-  memcpy(data, contents, static_cast<size_t>(size));
+void Buffer::write(void *contents, VkDeviceSize size, VkDeviceSize offset) {
+  uint8_t *data;
+  vmaMapMemory(m_allocator, allocation, (void **)&data);
+  memcpy(&data[offset], contents, static_cast<size_t>(size));
   vmaUnmapMemory(m_allocator, allocation);
 }
+
+void Buffer::write(void *contents, VkDeviceSize size) { write(contents, size, 0); }
 
 void Buffer::create(
     VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties,

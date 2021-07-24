@@ -18,6 +18,7 @@ public:
   Buffer &operator=(const Buffer &) = delete;
 
   void write(void *data, VkDeviceSize size);
+  void write(void *data, VkDeviceSize size, VkDeviceSize offset);
   void create(
       VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties,
       VmaMemoryUsage vmaUsage = VMA_MEMORY_USAGE_CPU_TO_GPU);
