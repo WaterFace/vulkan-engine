@@ -17,7 +17,9 @@ void Buffer::write(void *contents, VkDeviceSize size) {
   vmaUnmapMemory(m_allocator, allocation);
 }
 
-void Buffer::create(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties) {
+void Buffer::create(
+    VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties,
+    VmaMemoryUsage vmaUsage /*= VMA_MEMORY_USAGE_CPU_TO_GPU*/) {
   VkBufferCreateInfo bufferInfo{};
   bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
   bufferInfo.size = size;
@@ -25,8 +27,7 @@ void Buffer::create(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropert
   bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
   VmaAllocationCreateInfo allocInfo{};
-  // TODO: don't hardcode this
-  allocInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU;
+  allocInfo.usage = vmaUsage;
   allocInfo.requiredFlags = properties;
 
   vmaCreateBuffer(m_allocator, &bufferInfo, &allocInfo, &buffer, &allocation, nullptr);
