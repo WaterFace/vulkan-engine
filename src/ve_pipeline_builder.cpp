@@ -53,7 +53,13 @@ PipelineBuilder &PipelineBuilder::setSampleCount(VkSampleCountFlagBits sampleCou
   return *this;
 }
 
-VkPipeline PipelineBuilder::build() {
+PipelineBuilder &PipelineBuilder::setLayout(VkPipelineLayout layout) {
+  m_configInfo.pipelineLayout = layout;
+
+  return *this;
+}
+
+std::unique_ptr<Pipeline> PipelineBuilder::build() {
   VkGraphicsPipelineCreateInfo pipelineInfo{};
   pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
   pipelineInfo.stageCount = static_cast<uint32_t>(m_shaderStages.size());
