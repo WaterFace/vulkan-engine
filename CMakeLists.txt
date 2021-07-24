@@ -57,6 +57,8 @@ set(SOURCES
     src/ve_descriptor_allocator.cpp
     src/ve_descriptor_builder.hpp
     src/ve_descriptor_builder.cpp
+    src/ve_shader.hpp
+    src/ve_shader.cpp
 
     src/simple_render_system.hpp
     src/simple_render_system.cpp
