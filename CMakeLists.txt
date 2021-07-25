@@ -26,6 +26,10 @@ endfunction(add_shader)
 set(SOURCES
     src/vk_mem_alloc.h
 
+    src/spirv_reflect/include/spirv/unified1/spirv.h
+    src/spirv_reflect/spirv_reflect.h
+    src/spirv_reflect/spirv_reflect.c
+
     src/main.cpp
     src/ve_window.hpp
     src/ve_window.cpp
