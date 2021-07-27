@@ -19,8 +19,25 @@ void Buffer::write(void *contents, VkDeviceSize size, VkDeviceSize offset) {
 
 void Buffer::write(void *contents, VkDeviceSize size) { write(contents, size, 0); }
 
+// void Buffer::writeMapped(void *contents, VkDeviceSize size, VkDeviceSize offset) {
+//   assert(m_memoryMapped && "Tried to write to memory that hasn't been mapped");
+//   memcpy(&m_data[offset], contents, static_cast<size_t>(size));
+// }
+
+void Buffer::mapMemory() {
+  vmaMapMemory(m_allocator, allocation, (void **)&m_data);
+  m_memoryMapped = true;
+}
+
+void Buffer::unmapMemory() {
+  vmaUnmapMemory(m_allocator, allocation);
+  m_memoryMapped = false;
+}
+
 void Buffer::create(
-    VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties,
+    VkDeviceSize size,
+    VkBufferUsageFlags usage,
+    VkMemoryPropertyFlags properties,
     VmaMemoryUsage vmaUsage /*= VMA_MEMORY_USAGE_CPU_TO_GPU*/) {
   VkBufferCreateInfo bufferInfo{};
   bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
