@@ -1,21 +1,27 @@
 #include "ve_pipeline_builder.hpp"
 
+#include <iostream>
 #include <stdexcept>
 
 namespace ve {
 
-PipelineBuilder::PipelineBuilder(Device &device) : m_device{device} { defaultPipelineConfigInfo(m_configInfo); }
+PipelineBuilder::PipelineBuilder(Device &device)
+    : m_device{device}
+    , m_shaderEffect{device} {
+  defaultPipelineConfigInfo(m_configInfo);
+}
 
-PipelineBuilder &PipelineBuilder::addShaderStage(VkShaderModule module, VkShaderStageFlagBits stage) {
+PipelineBuilder &PipelineBuilder::addShaderStage(std::shared_ptr<ShaderStage> shader) {
   VkPipelineShaderStageCreateInfo info{};
   info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-  info.module = module;
-  info.stage = stage;
+  info.module = shader->module();
+  info.stage = shader->stage();
   info.pName = "main"; // TODO: maybe don't hardcode this?
   info.flags = 0;
   info.pNext = nullptr;
 
   m_shaderStages.push_back(info);
+  m_shaderEffect.addStage(shader);
 
   return *this;
 }
@@ -54,7 +60,13 @@ PipelineBuilder &PipelineBuilder::setSampleCount(VkSampleCountFlagBits sampleCou
 }
 
 PipelineBuilder &PipelineBuilder::setLayout(VkPipelineLayout layout) {
-  m_configInfo.pipelineLayout = layout;
+  m_pipelineLayout = layout;
+
+  return *this;
+}
+
+PipelineBuilder &PipelineBuilder::reflectLayout() {
+  m_pipelineLayout = m_shaderEffect.reflectLayout();
 
   return *this;
 }
@@ -73,7 +85,7 @@ std::unique_ptr<Pipeline> PipelineBuilder::build() {
   pipelineInfo.pDepthStencilState = &m_configInfo.depthStencilInfo;
   pipelineInfo.pDynamicState = &m_configInfo.dynamicStateInfo;
 
-  pipelineInfo.layout = m_configInfo.pipelineLayout;
+  pipelineInfo.layout = m_pipelineLayout;
   pipelineInfo.renderPass = m_configInfo.renderPass;
   pipelineInfo.subpass = m_configInfo.subpass;
 
@@ -87,7 +99,7 @@ std::unique_ptr<Pipeline> PipelineBuilder::build() {
     throw std::runtime_error("Failed to create graphics pipeline");
   }
 
-  return std::move(std::make_unique<Pipeline>(m_device, pipeline));
+  return std::move(std::make_unique<Pipeline>(m_device, pipeline, m_pipelineLayout));
 }
 
 void PipelineBuilder::defaultPipelineConfigInfo(PipelineConfigInfo &configInfo) {

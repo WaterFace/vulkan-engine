@@ -8,17 +8,18 @@
 
 namespace ve {
 
-Shader::Shader(Device &device, const std::string &filepath)
-    : m_device{device} {
+ShaderStage::ShaderStage(Device &device, const std::string &filepath, VkShaderStageFlagBits stage)
+    : m_device{device}
+    , m_stage{stage} {
   auto code = readFile(filepath);
   std::cout << filepath << " file size: " << code.size() << std::endl;
   createShaderModule(code, &m_shaderModule);
   m_code = std::move(code);
 }
 
-Shader::~Shader() { vkDestroyShaderModule(m_device.device(), m_shaderModule, nullptr); }
+ShaderStage::~ShaderStage() { vkDestroyShaderModule(m_device.device(), m_shaderModule, nullptr); }
 
-std::vector<uint8_t> Shader::readFile(const std::string &filepath) {
+std::vector<uint8_t> ShaderStage::readFile(const std::string &filepath) {
   std::ifstream file(filepath, std::ios::ate | std::ios::binary);
 
   if (!file.is_open()) {
@@ -35,7 +36,7 @@ std::vector<uint8_t> Shader::readFile(const std::string &filepath) {
   return buffer;
 }
 
-void Shader::createShaderModule(const std::vector<uint8_t> &code, VkShaderModule *shaderModule) {
+void ShaderStage::createShaderModule(const std::vector<uint8_t> &code, VkShaderModule *shaderModule) {
   VkShaderModuleCreateInfo info{};
   info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
   info.codeSize = code.size();
@@ -46,23 +47,24 @@ void Shader::createShaderModule(const std::vector<uint8_t> &code, VkShaderModule
   }
 }
 
-void ShaderEffect::addStage(ShaderModule *shaderModule, VkShaderStageFlagBits stage) {
-  m_stages.push_back({shaderModule, stage});
-}
+ShaderEffect::ShaderEffect(Device &device)
+    : m_device{device} {};
+
+void ShaderEffect::addStage(std::shared_ptr<ShaderStage> shader) { m_stages.push_back(shader); }
 
 struct DescriptorSetLayoutData {
   uint32_t setNumber;
   VkDescriptorSetLayoutCreateInfo info;
   std::vector<VkDescriptorSetLayoutBinding> bindings;
 };
-void ShaderEffect::reflectLayout() {
+VkPipelineLayout ShaderEffect::reflectLayout() {
   std::vector<DescriptorSetLayoutData> setLayouts;
   std::vector<VkPushConstantRange> pushConstantRanges;
 
   for (auto &s : m_stages) {
     SpvReflectShaderModule spvModule;
     SpvReflectResult result =
-        spvReflectCreateShaderModule(s.module->code.size() * sizeof(uint8_t), s.module->code.data(), &spvModule);
+        spvReflectCreateShaderModule(s->code().size() * sizeof(uint8_t), s->code().data(), &spvModule);
 
     uint32_t count = 0;
     result = spvReflectEnumerateDescriptorSets(&spvModule, &count, nullptr);
@@ -120,7 +122,9 @@ void ShaderEffect::reflectLayout() {
       VkPushConstantRange range{};
       range.offset = pushConstants[0]->offset;
       range.size = pushConstants[0]->size;
-      range.stageFlags = s.stage;
+      range.stageFlags = s->stage();
+
+      pushConstantRanges.push_back(range);
     }
   }
 
@@ -182,7 +186,13 @@ void ShaderEffect::reflectLayout() {
   layoutInfo.setLayoutCount = s;
   layoutInfo.pSetLayouts = compactedLayouts.data();
 
-  vkCreatePipelineLayout(m_device.device(), &layoutInfo, nullptr, &m_pipelineLayout);
+  VkPipelineLayout layout{};
+
+  if (vkCreatePipelineLayout(m_device.device(), &layoutInfo, nullptr, &layout) != VK_SUCCESS) {
+    throw std::runtime_error("Failed to reflect pipeline layout!");
+  }
+
+  return layout;
 }
 
 } // namespace ve
