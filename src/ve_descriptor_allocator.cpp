@@ -1,8 +1,12 @@
 #include "ve_descriptor_allocator.hpp"
 
+#include <iostream>
+#include <stdexcept>
+
 namespace ve {
 
-DescriptorAllocator::DescriptorAllocator(VkDevice newDevice) : device{newDevice} {}
+DescriptorAllocator::DescriptorAllocator(VkDevice newDevice)
+    : device{newDevice} {}
 DescriptorAllocator::~DescriptorAllocator() {
   for (auto p : m_usedPools) {
     vkDestroyDescriptorPool(device, p, nullptr);
@@ -12,8 +16,11 @@ DescriptorAllocator::~DescriptorAllocator() {
   }
 }
 
-VkDescriptorPool createPool(VkDevice device, DescriptorAllocator::PoolSizes &poolSizes, int count,
-                            VkDescriptorPoolCreateFlags flags) {
+VkDescriptorPool createPool(
+    VkDevice device,
+    DescriptorAllocator::PoolSizes &poolSizes,
+    int count,
+    VkDescriptorPoolCreateFlags flags) {
   std::vector<VkDescriptorPoolSize> sizes;
   sizes.reserve(poolSizes.sizes.size());
   for (auto sz : poolSizes.sizes) {
@@ -28,7 +35,9 @@ VkDescriptorPool createPool(VkDevice device, DescriptorAllocator::PoolSizes &poo
   poolInfo.pPoolSizes = sizes.data();
 
   VkDescriptorPool descriptorPool;
-  vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool);
+  if (vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
+    throw std::runtime_error("Failed to create descriptor pool");
+  }
 
   return descriptorPool;
 }
