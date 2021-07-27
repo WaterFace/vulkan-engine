@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ve_camera.hpp"
+#include "ve_descriptor_builder.hpp"
 #include "ve_device.hpp"
 #include "ve_game_object.hpp"
 #include "ve_model_loader.hpp"
@@ -21,12 +22,20 @@ public:
 
   void renderGameObjects(VkCommandBuffer cmd, std::vector<GameObject> &gameObjects, const Camera &camera);
 
+  static constexpr uint32_t MAX_INSTANCE_COUNT = 10000;
+
 private:
   void createPipelineLayout();
   void createPipeline(VkRenderPass renderPass);
 
   Device &m_device;
   ModelLoader &m_modelLoader;
+  DescriptorLayoutCache m_descriptorCache;
+  DescriptorAllocator m_descriptorAllocator;
+
+  VkDescriptorSet m_descriptorSet;
+  Buffer m_uniformBuffer;
+  Buffer m_objectBuffer;
 
   std::unique_ptr<Pipeline> m_pipeline;
   VkPipelineLayout m_pipelineLayout;

@@ -1,13 +1,16 @@
 #include "simple_render_system.hpp"
 
+#include "ve_descriptor_builder.hpp"
 #include "ve_pipeline_builder.hpp"
 #include "ve_shader.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#include <array>
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
+
+#include <array>
+#include <cassert>
 #include <iostream>
 
 namespace ve {
@@ -16,14 +19,68 @@ struct SimplePushConstantData {
   glm::mat4 mvp{1.0f};
 };
 
+struct InstanceData {
+  glm::mat4 model;
+};
+
+struct ObjectData {
+  InstanceData objects[SimpleRenderSystem::MAX_INSTANCE_COUNT];
+};
+
+struct UniformData {
+  // Camera data
+  glm::mat4 view;
+  glm::mat4 proj;
+  glm::mat4 viewproj;
+};
+
 SimpleRenderSystem::SimpleRenderSystem(Device &device, ModelLoader &modelLoader, VkRenderPass renderPass)
     : m_device{device}
-    , m_modelLoader{modelLoader} {
-  // createPipelineLayout();
+    , m_modelLoader{modelLoader}
+    , m_uniformBuffer{m_device.getAllocator()}
+    , m_objectBuffer{m_device.getAllocator()}
+    , m_descriptorCache{device.device()}
+    , m_descriptorAllocator{device.device()} {
   createPipeline(renderPass);
+
+  VkDeviceSize uniformBufferSize = m_device.padUniformBufferSize(sizeof(UniformData));
+  std::cout << "Using a uniform buffer of size " << uniformBufferSize << std::endl;
+  m_uniformBuffer.create(uniformBufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 0, VMA_MEMORY_USAGE_CPU_TO_GPU);
+  m_uniformBuffer.mapMemory();
+
+  VkDeviceSize objectBufferSize = MAX_INSTANCE_COUNT * sizeof(InstanceData);
+  std::cout << "And an object buffer of size " << objectBufferSize << std::endl;
+  m_objectBuffer.create(objectBufferSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, 0, VMA_MEMORY_USAGE_CPU_TO_GPU);
+  m_objectBuffer.mapMemory();
+
+  VkDescriptorBufferInfo uniformBufferInfo{};
+  uniformBufferInfo.buffer = m_uniformBuffer.buffer;
+  uniformBufferInfo.offset = 0;
+  uniformBufferInfo.range = VK_WHOLE_SIZE;
+
+  VkDescriptorBufferInfo objectBufferInfo{};
+  objectBufferInfo.buffer = m_objectBuffer.buffer;
+  objectBufferInfo.offset = 0;
+  objectBufferInfo.range = VK_WHOLE_SIZE;
+
+  DescriptorBuilder::begin(&m_descriptorCache, &m_descriptorAllocator)
+      .bindBuffer(
+          0,
+          &uniformBufferInfo,
+          VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+          VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_VERTEX_BIT)
+      .bindBuffer(
+          1,
+          &objectBufferInfo,
+          VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+          VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_VERTEX_BIT)
+      .build(m_descriptorSet);
 }
 
-SimpleRenderSystem::~SimpleRenderSystem() {}
+SimpleRenderSystem::~SimpleRenderSystem() {
+  m_uniformBuffer.unmapMemory();
+  m_objectBuffer.unmapMemory();
+}
 
 void SimpleRenderSystem::createPipelineLayout() {
   VkPushConstantRange pushConstantRange{};
@@ -53,7 +110,6 @@ void SimpleRenderSystem::createPipeline(VkRenderPass renderPass) {
   m_pipeline = builder.addShaderStage(vertShader)
                    .addShaderStage(fragShader)
                    .setSampleCount(m_device.getSampleCount())
-                   //  .setLayout(m_pipelineLayout)
                    .reflectLayout()
                    .setRenderPass(renderPass)
                    .setVertexInput(Model::Vertex::getBindingDescriptions(), Model::Vertex::getAttributeDescriptions())
@@ -68,23 +124,40 @@ void SimpleRenderSystem::renderGameObjects(
 
   m_modelLoader.bindBuffers(cmd);
 
-  for (auto &obj : gameObjects) {
-    obj.transform.rotation.y = glm::mod(obj.transform.rotation.y + 0.0001f * obj.getID(), glm::two_pi<float>());
+  uint32_t instanceCount = static_cast<uint32_t>(gameObjects.size());
+  assert(instanceCount <= MAX_INSTANCE_COUNT && "Tried to draw more than the maximum number of instances");
+  uint32_t uniformDataSize = sizeof(UniformData) + sizeof(InstanceData) * instanceCount;
 
+  UniformData *uniform = (UniformData *)m_uniformBuffer.data();
+  uniform->view = camera.getView();
+  uniform->proj = camera.getProjection();
+  uniform->viewproj = uniform->proj * uniform->view;
+
+  ObjectData *data = (ObjectData *)m_objectBuffer.data();
+
+  for (uint32_t i = 0; i < instanceCount; i++) {
+    GameObject &obj = gameObjects[i];
+    obj.transform.rotation.y = glm::mod(obj.transform.rotation.y + 0.0001f * obj.getID(), glm::two_pi<float>());
     obj.transform.rotation.x = glm::mod(obj.transform.rotation.x + 0.0002f * obj.getID(), glm::two_pi<float>());
 
-    SimplePushConstantData push{};
-    push.mvp = camera.getProjection() * camera.getView() * obj.transform.mat4();
-
-    vkCmdPushConstants(
-        cmd,
-        m_pipeline->layout(),
-        VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_VERTEX_BIT,
-        0,
-        sizeof(SimplePushConstantData),
-        &push);
-    obj.model.draw(cmd);
+    data->objects[i].model = obj.transform.mat4();
   }
+  vkCmdBindDescriptorSets(
+      cmd,
+      VK_PIPELINE_BIND_POINT_GRAPHICS,
+      m_pipeline->layout(),
+      0,
+      1,
+      &m_descriptorSet,
+      0,
+      nullptr);
+  vkCmdDrawIndexed(
+      cmd,
+      gameObjects[0].model.indexCount,
+      instanceCount,
+      gameObjects[0].model.firstIndex,
+      gameObjects[0].model.vertexOffset,
+      0);
 }
 
 } // namespace ve
