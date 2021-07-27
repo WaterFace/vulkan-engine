@@ -20,11 +20,11 @@ struct SimplePushConstantData {
 SimpleRenderSystem::SimpleRenderSystem(Device &device, ModelLoader &modelLoader, VkRenderPass renderPass)
     : m_device{device}
     , m_modelLoader{modelLoader} {
-  createPipelineLayout();
+  // createPipelineLayout();
   createPipeline(renderPass);
 }
 
-SimpleRenderSystem::~SimpleRenderSystem() { vkDestroyPipelineLayout(m_device.device(), m_pipelineLayout, nullptr); }
+SimpleRenderSystem::~SimpleRenderSystem() {}
 
 void SimpleRenderSystem::createPipelineLayout() {
   VkPushConstantRange pushConstantRange{};
@@ -46,15 +46,16 @@ void SimpleRenderSystem::createPipelineLayout() {
 
 void SimpleRenderSystem::createPipeline(VkRenderPass renderPass) {
 
-  Shader vertexShader(m_device, "shaders/simple.vert.spv");
-  Shader fragmentShader(m_device, "shaders/simple.frag.spv");
+  auto vertShader = std::make_shared<ShaderStage>(m_device, "shaders/simple.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
+  auto fragShader = std::make_shared<ShaderStage>(m_device, "shaders/simple.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
 
   PipelineBuilder builder(m_device);
 
-  m_pipeline = builder.addShaderStage(vertexShader.module(), VK_SHADER_STAGE_VERTEX_BIT)
-                   .addShaderStage(fragmentShader.module(), VK_SHADER_STAGE_FRAGMENT_BIT)
+  m_pipeline = builder.addShaderStage(vertShader)
+                   .addShaderStage(fragShader)
                    .setSampleCount(m_device.getSampleCount())
-                   .setLayout(m_pipelineLayout)
+                   //  .setLayout(m_pipelineLayout)
+                   .reflectLayout()
                    .setRenderPass(renderPass)
                    .setVertexInput(Model::Vertex::getBindingDescriptions(), Model::Vertex::getAttributeDescriptions())
                    .build();
@@ -74,12 +75,11 @@ void SimpleRenderSystem::renderGameObjects(
     obj.transform.rotation.x = glm::mod(obj.transform.rotation.x + 0.0002f * obj.getID(), glm::two_pi<float>());
 
     SimplePushConstantData push{};
-    push.color = obj.color;
     push.mvp = camera.getProjection() * camera.getView() * obj.transform.mat4();
 
     vkCmdPushConstants(
         cmd,
-        m_pipelineLayout,
+        m_pipeline->layout(),
         VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_VERTEX_BIT,
         0,
         sizeof(SimplePushConstantData),
