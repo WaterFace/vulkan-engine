@@ -29,25 +29,24 @@ public:
     std::vector<uint32_t> indices{};
   };
 
-  Model(uint32_t vertexCount, uint32_t indexCount, IndexType firstIndex, int32_t vertexOffset)
-      : m_vertexCount{vertexCount}
-      , m_indexCount{indexCount}
-      , m_firstIndex{firstIndex}
-      , m_vertexOffset{vertexOffset} {}
+  Model(uint32_t vCount, uint32_t iCount, IndexType first, int32_t offset)
+      : vertexCount{vCount}
+      , indexCount{iCount}
+      , firstIndex{first}
+      , vertexOffset{offset} {}
   Model()
-      : m_vertexCount{0}
-      , m_indexCount{0}
-      , m_firstIndex{0}
-      , m_vertexOffset{0} {}
+      : vertexCount{0}
+      , indexCount{0}
+      , firstIndex{0}
+      , vertexOffset{0} {}
   ~Model(){};
 
-  void draw(VkCommandBuffer cmd) { vkCmdDrawIndexed(cmd, m_indexCount, 1, m_firstIndex, m_vertexOffset, 0); };
+  void draw(VkCommandBuffer cmd) { vkCmdDrawIndexed(cmd, indexCount, 1, firstIndex, vertexOffset, 0); };
 
-private:
-  uint32_t m_vertexCount;
-  uint32_t m_indexCount;
-  IndexType m_firstIndex;
-  int32_t m_vertexOffset;
+  uint32_t vertexCount;
+  uint32_t indexCount;
+  IndexType firstIndex;
+  int32_t vertexOffset;
 };
 
 } // namespace ve
