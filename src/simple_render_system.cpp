@@ -14,7 +14,6 @@ namespace ve {
 
 struct SimplePushConstantData {
   glm::mat4 mvp{1.0f};
-  alignas(16) glm::vec3 color;
 };
 
 SimpleRenderSystem::SimpleRenderSystem(Device &device, ModelLoader &modelLoader, VkRenderPass renderPass)
@@ -68,7 +67,7 @@ void SimpleRenderSystem::renderGameObjects(
   m_pipeline->bind(cmd);
 
   m_modelLoader.bindBuffers(cmd);
-  
+
   for (auto &obj : gameObjects) {
     obj.transform.rotation.y = glm::mod(obj.transform.rotation.y + 0.0001f * obj.getID(), glm::two_pi<float>());
 
