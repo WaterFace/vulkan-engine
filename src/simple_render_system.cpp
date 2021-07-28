@@ -21,6 +21,7 @@ struct SimplePushConstantData {
 
 struct InstanceData {
   glm::mat4 model;
+  glm::mat4 normalRotation;
 };
 
 struct ObjectData {
@@ -32,6 +33,22 @@ struct UniformData {
   glm::mat4 view;
   glm::mat4 proj;
   glm::mat4 viewproj;
+  glm::vec3 cameraPosition;
+};
+
+struct PointLight {
+  alignas(16) glm::vec3 position;
+
+  alignas(16) glm::vec3 diffuseColor;
+  alignas(4) float diffusePower;
+
+  alignas(16) glm::vec3 specularColor;
+  alignas(4) float specularPower;
+};
+
+struct LightData {
+  uint32_t numLights;
+  PointLight lights[SimpleRenderSystem::MAX_LIGHT_COUNT];
 };
 
 SimpleRenderSystem::SimpleRenderSystem(Device &device, ModelLoader &modelLoader, VkRenderPass renderPass)
@@ -39,6 +56,7 @@ SimpleRenderSystem::SimpleRenderSystem(Device &device, ModelLoader &modelLoader,
     , m_modelLoader{modelLoader}
     , m_uniformBuffer{m_device.getAllocator()}
     , m_objectBuffer{m_device.getAllocator()}
+    , m_lightBuffer{m_device.getAllocator()}
     , m_descriptorCache{device.device()}
     , m_descriptorAllocator{device.device()} {
   createPipeline(renderPass);
@@ -49,9 +67,14 @@ SimpleRenderSystem::SimpleRenderSystem(Device &device, ModelLoader &modelLoader,
   m_uniformBuffer.mapMemory();
 
   VkDeviceSize objectBufferSize = MAX_INSTANCE_COUNT * sizeof(InstanceData);
-  std::cout << "And an object buffer of size " << objectBufferSize << std::endl;
+  std::cout << "Using an object buffer of size " << objectBufferSize << std::endl;
   m_objectBuffer.create(objectBufferSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, 0, VMA_MEMORY_USAGE_CPU_TO_GPU);
   m_objectBuffer.mapMemory();
+
+  VkDeviceSize lightBufferSize = sizeof(uint32_t) + MAX_LIGHT_COUNT * sizeof(PointLight);
+  std::cout << "Using a light buffer of size " << lightBufferSize << std::endl;
+  m_lightBuffer.create(lightBufferSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, 0, VMA_MEMORY_USAGE_CPU_TO_GPU);
+  m_lightBuffer.mapMemory();
 
   VkDescriptorBufferInfo uniformBufferInfo{};
   uniformBufferInfo.buffer = m_uniformBuffer.buffer;
@@ -62,6 +85,11 @@ SimpleRenderSystem::SimpleRenderSystem(Device &device, ModelLoader &modelLoader,
   objectBufferInfo.buffer = m_objectBuffer.buffer;
   objectBufferInfo.offset = 0;
   objectBufferInfo.range = VK_WHOLE_SIZE;
+
+  VkDescriptorBufferInfo lightBufferInfo{};
+  lightBufferInfo.buffer = m_lightBuffer.buffer;
+  lightBufferInfo.offset = 0;
+  lightBufferInfo.range = VK_WHOLE_SIZE;
 
   DescriptorBuilder::begin(&m_descriptorCache, &m_descriptorAllocator)
       .bindBuffer(
@@ -74,12 +102,18 @@ SimpleRenderSystem::SimpleRenderSystem(Device &device, ModelLoader &modelLoader,
           &objectBufferInfo,
           VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
           VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_VERTEX_BIT)
+      .bindBuffer(
+          2,
+          &lightBufferInfo,
+          VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+          VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_VERTEX_BIT)
       .build(m_descriptorSet);
 }
 
 SimpleRenderSystem::~SimpleRenderSystem() {
   m_uniformBuffer.unmapMemory();
   m_objectBuffer.unmapMemory();
+  m_lightBuffer.unmapMemory();
 }
 
 void SimpleRenderSystem::createPipelineLayout() {
@@ -120,6 +154,7 @@ void SimpleRenderSystem::renderGameObjects(
     VkCommandBuffer cmd,
     std::vector<GameObject> &gameObjects,
     const Camera &camera) {
+  m_timer.update();
   m_pipeline->bind(cmd);
 
   m_modelLoader.bindBuffers(cmd);
@@ -132,8 +167,26 @@ void SimpleRenderSystem::renderGameObjects(
   uniform->view = camera.getView();
   uniform->proj = camera.getProjection();
   uniform->viewproj = uniform->proj * uniform->view;
+  uniform->cameraPosition = camera.position();
 
   ObjectData *data = (ObjectData *)m_objectBuffer.data();
+
+  LightData *lightData = (LightData *)m_lightBuffer.data();
+  lightData->numLights = 2;
+  lightData->lights[0].position = glm::vec3(2.0f, 0.0f, -1.5f);
+  lightData->lights[0].diffuseColor = glm::vec3(0.8f, 0.8f, 0.8f);
+  lightData->lights[0].diffusePower = 1.0f;
+  lightData->lights[0].specularColor = glm::vec3(1.0f, 1.0f, 1.0f);
+  lightData->lights[0].specularPower = 0.3f;
+
+  lightData->lights[1].position = glm::vec3(-2.0f, 0.0f, -1.5f);
+  lightData->lights[1].diffuseColor = glm::vec3(0.8f, 0.8f, 0.8f);
+  lightData->lights[1].diffusePower = 1.0f;
+  lightData->lights[1].specularColor = glm::vec3(1.0f, 1.0f, 1.0f);
+  lightData->lights[1].specularPower = 1.0f;
+
+  // std::cout << lightData->lights[0].position.x << " " << lightData->lights[0].position.y << " "
+  //           << lightData->lights[0].position.z << std::endl;
 
   for (uint32_t i = 0; i < instanceCount; i++) {
     GameObject &obj = gameObjects[i];
@@ -141,6 +194,7 @@ void SimpleRenderSystem::renderGameObjects(
     obj.transform.rotation.x = glm::mod(obj.transform.rotation.x + 0.0002f * obj.getID(), glm::two_pi<float>());
 
     data->objects[i].model = obj.transform.mat4();
+    data->objects[i].normalRotation = glm::transpose(glm::inverse(data->objects[i].model));
   }
   vkCmdBindDescriptorSets(
       cmd,

@@ -20,6 +20,8 @@ public:
   const glm::vec3 &forward() const { return m_forward; }
   const glm::vec3 &up() const { return m_up; }
 
+  const glm::vec3 &position() const { return m_position; }
+
   const float aspect() const { return m_aspect; }
 
   void rotate(float yaw, float pitch);
