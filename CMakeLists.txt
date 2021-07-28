@@ -30,6 +30,8 @@ set(SOURCES
     src/spirv_reflect/spirv_reflect.h
     src/spirv_reflect/spirv_reflect.c
 
+    src/tinygltf/tiny_gltf.cc
+
     src/main.cpp
     src/ve_window.hpp
     src/ve_window.cpp
@@ -65,6 +67,8 @@ set(SOURCES
     src/ve_shader.cpp
     src/ve_model_loader.hpp
     src/ve_model_loader.cpp
+    src/ve_gltf_loader.hpp
+    src/ve_gltf_loader.cpp
 
     src/simple_render_system.hpp
     src/simple_render_system.cpp

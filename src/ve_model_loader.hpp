@@ -5,6 +5,7 @@
 #include "ve_model.hpp"
 
 #include <memory>
+#include <string>
 
 namespace ve {
 
@@ -24,6 +25,7 @@ public:
   bool invalidBuffers() { return m_invalidBuffers; }
 
   Model load(const Model::Data &data);
+  Model loadFromglTF(const std::string &filepath);
 
 private:
   void growVertexBuffer();

@@ -1,5 +1,7 @@
 #include "ve_model_loader.hpp"
 
+#include "ve_gltf_loader.hpp"
+
 #include <iostream>
 
 namespace ve {
@@ -99,6 +101,13 @@ Model ModelLoader::load(const Model::Data &data) {
   m_currentIndexOffset += indexBufferSize;
 
   return model;
+}
+
+Model ModelLoader::loadFromglTF(const std::string &filepath) {
+  glTF::Model model;
+  model.loadFromFile(filepath, &m_device);
+
+  return load(model.data);
 }
 
 } // namespace ve
