@@ -101,15 +101,21 @@ Model App::createCubeModel(Device &device, glm::vec3 offset) {
 }
 
 void App::loadGameObjects() {
-  Model cubeModel = createCubeModel(m_device, {0.0f, 0.0f, 0.0f});
+  // Model cubeModel = createCubeModel(m_device, {0.0f, 0.0f, 0.0f});
+  // Model cubeModel = m_modelLoader.loadFromglTF("models/cube.gltf");
+  Model monkeyModel = m_modelLoader.loadFromglTF("models/smooth-monkey.glb");
 
-  for (int i = 0; i < 100; i++) {
-    auto cube = GameObject::createGameObject();
-    cube.model = cubeModel;
-    cube.transform.translation = {(i / 10) + 0.0f, (i % 10) + 0.0f, -2.5f};
-    cube.transform.scale = {0.5f, 0.5f, 0.5f};
-    m_gameObjects.push_back(std::move(cube));
-  }
+  auto monkey = GameObject::createGameObject();
+  monkey.model = monkeyModel;
+  monkey.transform.translation = {0.0f, 0.0f, -2.5f};
+  monkey.transform.scale = {0.5f, 0.5f, 0.5f};
+  m_gameObjects.push_back(std::move(monkey));
+
+  // auto cube = GameObject::createGameObject();
+  // cube.model = cubeModel;
+  // cube.transform.translation = {2.0f, 0.0f, -2.5f};
+  // monkey.transform.scale = {0.5f, 0.5f, 0.5f};
+  // m_gameObjects.push_back(std::move(cube));
 }
 
 } // namespace ve
