@@ -36,11 +36,6 @@ public:
     return GameObject{currentId++};
   }
 
-  GameObject(const GameObject &) = delete;
-  GameObject &operator=(const GameObject &) = delete;
-  GameObject(GameObject &&) = default;
-  GameObject &operator=(GameObject &&) = default;
-
   const id_t getID() { return m_id; }
 
   Model model{};
@@ -48,8 +43,7 @@ public:
   TransformComponent transform{};
 
 private:
-  GameObject(id_t id)
-      : m_id{id} {}
+  GameObject(id_t id) : m_id{id} {}
   id_t m_id;
 };
 
