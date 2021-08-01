@@ -1,6 +1,7 @@
 #include "simple_render_system.hpp"
 
 #include "ve_descriptor_builder.hpp"
+#include "ve_light.hpp"
 #include "ve_pipeline_builder.hpp"
 #include "ve_shader.hpp"
 
@@ -36,29 +37,15 @@ struct UniformData {
   glm::vec3 cameraPosition;
 };
 
-struct PointLight {
-  alignas(16) glm::vec3 position;
-
-  alignas(16) glm::vec3 diffuseColor;
-  alignas(4) float diffusePower;
-
-  alignas(16) glm::vec3 specularColor;
-  alignas(4) float specularPower;
-};
-
 struct LightData {
   uint32_t numLights;
   PointLight lights[SimpleRenderSystem::MAX_LIGHT_COUNT];
 };
 
 SimpleRenderSystem::SimpleRenderSystem(Device &device, ModelLoader &modelLoader, VkRenderPass renderPass)
-    : m_device{device}
-    , m_modelLoader{modelLoader}
-    , m_uniformBuffer{m_device.getAllocator()}
-    , m_objectBuffer{m_device.getAllocator()}
-    , m_lightBuffer{m_device.getAllocator()}
-    , m_descriptorCache{device.device()}
-    , m_descriptorAllocator{device.device()} {
+    : m_device{device}, m_modelLoader{modelLoader}, m_uniformBuffer{m_device.getAllocator()},
+      m_objectBuffer{m_device.getAllocator()}, m_lightBuffer{m_device.getAllocator()},
+      m_descriptorCache{device.device()}, m_descriptorAllocator{device.device()} {
   createPipeline(renderPass);
 
   VkDeviceSize uniformBufferSize = m_device.padUniformBufferSize(sizeof(UniformData));
@@ -93,19 +80,13 @@ SimpleRenderSystem::SimpleRenderSystem(Device &device, ModelLoader &modelLoader,
 
   DescriptorBuilder::begin(&m_descriptorCache, &m_descriptorAllocator)
       .bindBuffer(
-          0,
-          &uniformBufferInfo,
-          VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+          0, &uniformBufferInfo, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
           VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_VERTEX_BIT)
       .bindBuffer(
-          1,
-          &objectBufferInfo,
-          VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+          1, &objectBufferInfo, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
           VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_VERTEX_BIT)
       .bindBuffer(
-          2,
-          &lightBufferInfo,
-          VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+          2, &lightBufferInfo, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
           VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_VERTEX_BIT)
       .build(m_descriptorSet);
 }
@@ -151,9 +132,7 @@ void SimpleRenderSystem::createPipeline(VkRenderPass renderPass) {
 }
 
 void SimpleRenderSystem::renderGameObjects(
-    VkCommandBuffer cmd,
-    std::vector<GameObject> &gameObjects,
-    const Camera &camera) {
+    VkCommandBuffer cmd, std::vector<GameObject> &gameObjects, const Camera &camera) {
   m_timer.update();
   m_pipeline->bind(cmd);
 
@@ -197,21 +176,10 @@ void SimpleRenderSystem::renderGameObjects(
     data->objects[i].normalRotation = glm::transpose(glm::inverse(data->objects[i].model));
   }
   vkCmdBindDescriptorSets(
-      cmd,
-      VK_PIPELINE_BIND_POINT_GRAPHICS,
-      m_pipeline->layout(),
-      0,
-      1,
-      &m_descriptorSet,
-      0,
-      nullptr);
+      cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline->layout(), 0, 1, &m_descriptorSet, 0, nullptr);
   vkCmdDrawIndexed(
-      cmd,
-      gameObjects[0].model.indexCount,
-      instanceCount,
-      gameObjects[0].model.firstIndex,
-      gameObjects[0].model.vertexOffset,
-      0);
+      cmd, gameObjects[0].model.indexCount, instanceCount, gameObjects[0].model.firstIndex,
+      gameObjects[0].model.vertexOffset, 0);
 }
 
 } // namespace ve
