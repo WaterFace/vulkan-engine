@@ -71,6 +71,8 @@ set(SOURCES
     src/ve_gltf_loader.cpp
     src/ve_light.hpp
     src/ve_light.cpp
+    src/ve_scene.hpp
+    src/ve_scene.cpp
 
     src/simple_render_system.hpp
     src/simple_render_system.cpp
