@@ -17,7 +17,7 @@ namespace ve {
 class Scene {
 public:
   Scene(ModelLoader &modelLoader);
-  ~Scene();
+  ~Scene(){};
 
   void addGameObject(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, std::string modelPath);
   void addGameObject(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale);
