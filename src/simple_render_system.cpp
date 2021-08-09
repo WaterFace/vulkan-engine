@@ -42,11 +42,27 @@ struct LightData {
   PointLight lights[SimpleRenderSystem::MAX_LIGHT_COUNT];
 };
 
+void loadScene(Scene &scene) {
+  scene.addGameObject(glm::vec3(-1.0f, 0.0f, -2.5f), glm::vec3(0.0f), glm::vec3(0.5f), "smooth-monkey.glb");
+  scene.addGameObject(glm::vec3(1.0f, 0.0f, -2.5f), glm::vec3(0.0f), glm::vec3(0.5f), "cube.gltf");
+
+  scene.addLight({glm::vec3(2.0f, 0.0f, -1.5f), glm::vec3(0.8f, 0.8f, 0.8f), 1.0f, glm::vec3(1.0f, 1.0f, 1.0f), 0.3f});
+  scene.addLight({glm::vec3(-2.0f, 0.0f, -1.5f), glm::vec3(0.8f, 0.8f, 0.8f), 1.0f, glm::vec3(1.0f, 1.0f, 1.0f), 0.3f});
+}
+
 SimpleRenderSystem::SimpleRenderSystem(Device &device, ModelLoader &modelLoader, VkRenderPass renderPass)
-    : m_device{device}, m_modelLoader{modelLoader}, m_uniformBuffer{m_device.getAllocator()},
-      m_objectBuffer{m_device.getAllocator()}, m_lightBuffer{m_device.getAllocator()},
-      m_descriptorCache{device.device()}, m_descriptorAllocator{device.device()} {
+    : m_device{device}
+    , m_modelLoader{modelLoader}
+    , m_uniformBuffer{m_device.getAllocator()}
+    , m_objectBuffer{m_device.getAllocator()}
+    , m_lightBuffer{m_device.getAllocator()}
+    , m_descriptorCache{device.device()}
+    , m_descriptorAllocator{device.device()}
+    , m_scene{modelLoader} {
   createPipeline(renderPass);
+
+  loadScene(m_scene);
+  m_scene.prepare();
 
   VkDeviceSize uniformBufferSize = m_device.padUniformBufferSize(sizeof(UniformData));
   std::cout << "Using a uniform buffer of size " << uniformBufferSize << std::endl;
@@ -80,13 +96,19 @@ SimpleRenderSystem::SimpleRenderSystem(Device &device, ModelLoader &modelLoader,
 
   DescriptorBuilder::begin(&m_descriptorCache, &m_descriptorAllocator)
       .bindBuffer(
-          0, &uniformBufferInfo, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+          0,
+          &uniformBufferInfo,
+          VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
           VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_VERTEX_BIT)
       .bindBuffer(
-          1, &objectBufferInfo, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+          1,
+          &objectBufferInfo,
+          VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
           VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_VERTEX_BIT)
       .bindBuffer(
-          2, &lightBufferInfo, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+          2,
+          &lightBufferInfo,
+          VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
           VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_VERTEX_BIT)
       .build(m_descriptorSet);
 }
@@ -132,15 +154,17 @@ void SimpleRenderSystem::createPipeline(VkRenderPass renderPass) {
 }
 
 void SimpleRenderSystem::renderGameObjects(
-    VkCommandBuffer cmd, std::vector<GameObject> &gameObjects, const Camera &camera) {
+    VkCommandBuffer cmd,
+    std::vector<GameObject> &gameObjects,
+    const Camera &camera) {
   m_timer.update();
   m_pipeline->bind(cmd);
 
   m_modelLoader.bindBuffers(cmd);
 
-  uint32_t instanceCount = static_cast<uint32_t>(gameObjects.size());
-  assert(instanceCount <= MAX_INSTANCE_COUNT && "Tried to draw more than the maximum number of instances");
-  uint32_t uniformDataSize = sizeof(UniformData) + sizeof(InstanceData) * instanceCount;
+  uint32_t totalInstanceCount = static_cast<uint32_t>(m_scene.gameObjects().size());
+  assert(totalInstanceCount <= MAX_INSTANCE_COUNT && "Tried to draw more than the maximum number of instances");
+  uint32_t uniformDataSize = sizeof(UniformData) + sizeof(InstanceData) * totalInstanceCount;
 
   UniformData *uniform = (UniformData *)m_uniformBuffer.data();
   uniform->view = camera.getView();
@@ -151,35 +175,27 @@ void SimpleRenderSystem::renderGameObjects(
   ObjectData *data = (ObjectData *)m_objectBuffer.data();
 
   LightData *lightData = (LightData *)m_lightBuffer.data();
-  lightData->numLights = 2;
-  lightData->lights[0].position = glm::vec3(2.0f, 0.0f, -1.5f);
-  lightData->lights[0].diffuseColor = glm::vec3(0.8f, 0.8f, 0.8f);
-  lightData->lights[0].diffusePower = 1.0f;
-  lightData->lights[0].specularColor = glm::vec3(1.0f, 1.0f, 1.0f);
-  lightData->lights[0].specularPower = 0.3f;
+  lightData->numLights = static_cast<uint32_t>(m_scene.lights().size());
+  for (size_t i = 0; i < m_scene.lights().size(); i++) {
+    lightData->lights[i] = m_scene.lights()[i];
+  }
 
-  lightData->lights[1].position = glm::vec3(-2.0f, 0.0f, -1.5f);
-  lightData->lights[1].diffuseColor = glm::vec3(0.8f, 0.8f, 0.8f);
-  lightData->lights[1].diffusePower = 1.0f;
-  lightData->lights[1].specularColor = glm::vec3(1.0f, 1.0f, 1.0f);
-  lightData->lights[1].specularPower = 1.0f;
-
-  // std::cout << lightData->lights[0].position.x << " " << lightData->lights[0].position.y << " "
-  //           << lightData->lights[0].position.z << std::endl;
-
-  for (uint32_t i = 0; i < instanceCount; i++) {
-    GameObject &obj = gameObjects[i];
-    obj.transform.rotation.y = glm::mod(obj.transform.rotation.y + 0.0001f * obj.getID(), glm::two_pi<float>());
-    obj.transform.rotation.x = glm::mod(obj.transform.rotation.x + 0.0002f * obj.getID(), glm::two_pi<float>());
+  for (uint32_t i = 0; i < totalInstanceCount; i++) {
+    GameObject obj = m_scene.gameObjects()[i];
 
     data->objects[i].model = obj.transform.mat4();
     data->objects[i].normalRotation = glm::transpose(glm::inverse(data->objects[i].model));
   }
   vkCmdBindDescriptorSets(
-      cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline->layout(), 0, 1, &m_descriptorSet, 0, nullptr);
-  vkCmdDrawIndexed(
-      cmd, gameObjects[0].model.indexCount, instanceCount, gameObjects[0].model.firstIndex,
-      gameObjects[0].model.vertexOffset, 0);
+      cmd,
+      VK_PIPELINE_BIND_POINT_GRAPHICS,
+      m_pipeline->layout(),
+      0,
+      1,
+      &m_descriptorSet,
+      0,
+      nullptr);
+  m_scene.draw(cmd);
 }
 
 } // namespace ve

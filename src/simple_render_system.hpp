@@ -6,6 +6,7 @@
 #include "ve_game_object.hpp"
 #include "ve_model_loader.hpp"
 #include "ve_pipeline.hpp"
+#include "ve_scene.hpp"
 #include "ve_timer.hpp"
 
 #include <memory>
@@ -35,6 +36,7 @@ private:
   DescriptorLayoutCache m_descriptorCache;
   DescriptorAllocator m_descriptorAllocator;
   Timer m_timer{};
+  Scene m_scene;
 
   VkDescriptorSet m_descriptorSet;
   Buffer m_uniformBuffer;
