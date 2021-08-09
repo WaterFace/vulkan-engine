@@ -14,6 +14,14 @@
 
 namespace ve {
 
+struct DrawCall {
+  uint32_t indexCount;
+  uint32_t instanceCount;
+  uint32_t firstIndex;
+  int32_t vertexOffset;
+  uint32_t firstInstance;
+};
+
 class Scene {
 public:
   Scene(ModelLoader &modelLoader);
@@ -24,13 +32,19 @@ public:
 
   void addLight(PointLight light);
 
-  // for now this just sorts the list of models
+  const std::vector<GameObject> &gameObjects() { return m_gameObjects; }
+  const std::vector<PointLight> &lights() { return m_lights; }
+
+  // this sorts the list of `GameObject`s by model, then
+  // fills the `m_drawCalls` vector with the data to make
+  // draw calls in `draw()`
   void prepare();
-  void draw();
+  void draw(VkCommandBuffer cmd);
 
 private:
   ModelLoader &m_modelLoader;
-  std::unordered_map<std::string, Model> m_loadedModels;
+
+  std::vector<DrawCall> m_drawCalls;
   std::vector<PointLight> m_lights;
   std::vector<GameObject> m_gameObjects;
 };
