@@ -103,7 +103,7 @@ Model App::createCubeModel(Device &device, glm::vec3 offset) {
 void App::loadGameObjects() {
   // Model cubeModel = createCubeModel(m_device, {0.0f, 0.0f, 0.0f});
   // Model cubeModel = m_modelLoader.loadFromglTF("models/cube.gltf");
-  Model monkeyModel = m_modelLoader.loadFromglTF("models/smooth-monkey.glb");
+  Model monkeyModel = m_modelLoader.loadFromglTF("smooth-monkey.glb");
 
   auto monkey = GameObject::createGameObject();
   monkey.model = monkeyModel;

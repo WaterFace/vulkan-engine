@@ -24,6 +24,7 @@ public:
 
   bool invalidBuffers() { return m_invalidBuffers; }
 
+  static const std::string MODEL_PATH;
   Model load(const Model::Data &data);
   Model loadFromglTF(const std::string &filepath);
 

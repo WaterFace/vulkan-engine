@@ -6,6 +6,8 @@
 
 namespace ve {
 
+const std::string ModelLoader::MODEL_PATH = "models/";
+
 ModelLoader::ModelLoader(Device &device)
     : m_device{device}
     , m_invalidBuffers{true} {
@@ -105,7 +107,7 @@ Model ModelLoader::load(const Model::Data &data) {
 
 Model ModelLoader::loadFromglTF(const std::string &filepath) {
   glTF::Model model;
-  model.loadFromFile(filepath, &m_device);
+    model.loadFromFile(MODEL_PATH + filepath, &m_device);
 
   return load(model.data);
 }
