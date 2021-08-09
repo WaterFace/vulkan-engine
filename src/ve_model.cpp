@@ -47,4 +47,9 @@ std::vector<VkVertexInputAttributeDescription> Model::Vertex::getAttributeDescri
   return attributeDescriptions;
 }
 
+bool Model::operator==(const Model &other) {
+  return (this->vertexCount == other.vertexCount) && (this->vertexOffset == other.vertexOffset) &&
+         (this->firstIndex == other.firstIndex) && (this->indexCount == other.indexCount);
+}
+
 } // namespace ve
