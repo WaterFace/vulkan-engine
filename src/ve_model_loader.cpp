@@ -84,14 +84,23 @@ Model ModelLoader::load(const Model::Data &data) {
     growVertexBuffer();
   }
 
-  m_device
-      .copyBuffer(stagingVertexBuffer.buffer, m_bigVertexBuffer->buffer, vertexBufferSize, 0, m_currentVertexOffset);
+  m_device.copyBuffer(
+      stagingVertexBuffer.buffer,
+      m_bigVertexBuffer->buffer,
+      vertexBufferSize,
+      0,
+      m_currentVertexOffset * sizeof(Model::Vertex));
 
   while (m_currentIndexBufferSize - m_currentIndexOffset < indexBufferSize) {
     growIndexBuffer();
   }
 
-  m_device.copyBuffer(stagingIndexBuffer.buffer, m_bigIndexBuffer->buffer, indexBufferSize, 0, m_currentIndexOffset);
+  m_device.copyBuffer(
+      stagingIndexBuffer.buffer,
+      m_bigIndexBuffer->buffer,
+      indexBufferSize,
+      0,
+      m_currentIndexOffset * sizeof(Model::IndexType));
 
   Model model{
       static_cast<uint32_t>(data.vertices.size()),
@@ -99,8 +108,8 @@ Model ModelLoader::load(const Model::Data &data) {
       m_currentIndexOffset,
       static_cast<int32_t>(m_currentVertexOffset)};
 
-  m_currentVertexOffset += vertexBufferSize;
-  m_currentIndexOffset += indexBufferSize;
+  m_currentVertexOffset += data.vertices.size();
+  m_currentIndexOffset += data.indices.size();
 
   return model;
 }
