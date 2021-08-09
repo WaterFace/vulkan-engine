@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <string>
+#include <unordered_map>
 
 namespace ve {
 
@@ -36,6 +37,8 @@ private:
 
   static constexpr VkDeviceSize INITIAL_BUFFER_SIZE = 1000;
   Device &m_device;
+
+  std::unordered_map<std::string, Model> m_loadedModels;
 
   std::unique_ptr<Buffer> m_bigVertexBuffer;
   uint32_t m_currentVertexBufferSize{INITIAL_BUFFER_SIZE};

@@ -115,10 +115,17 @@ Model ModelLoader::load(const Model::Data &data) {
 }
 
 Model ModelLoader::loadFromglTF(const std::string &filepath) {
-  glTF::Model model;
+
+  if (m_loadedModels.find(filepath) == m_loadedModels.end()) {
+    glTF::Model model;
     model.loadFromFile(MODEL_PATH + filepath, &m_device);
 
-  return load(model.data);
+    Model newModel = load(model.data);
+    m_loadedModels[filepath] = newModel;
+    return newModel;
+  } else {
+    return m_loadedModels[filepath];
+  }
 }
 
 } // namespace ve
