@@ -79,7 +79,5 @@ void main() {
     color += k_s * specular * specularColor * specularPower / dist;
   }
 
-  vec3 colorGammaCorrected = pow(color, vec3(1.0 / 2.2));
-  // float lambertian = max(dot(lights.lights[0].position - fragPosition, normal), 0.0f);
-  outColor = vec4(colorGammaCorrected, 1.0);
+  outColor = vec4(color, 1.0);
 }
