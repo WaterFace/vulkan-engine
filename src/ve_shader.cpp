@@ -50,6 +50,12 @@ void ShaderStage::createShaderModule(const std::vector<uint8_t> &code, VkShaderM
 ShaderEffect::ShaderEffect(Device &device)
     : m_device{device} {};
 
+ShaderEffect::~ShaderEffect() {
+  for (auto setLayout : m_setLayouts) {
+    vkDestroyDescriptorSetLayout(m_device.device(), setLayout, nullptr);
+  }
+}
+
 void ShaderEffect::addStage(std::shared_ptr<ShaderStage> shader) { m_stages.push_back(shader); }
 
 struct DescriptorSetLayoutData {

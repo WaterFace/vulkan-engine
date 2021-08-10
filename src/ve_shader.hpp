@@ -34,7 +34,7 @@ private:
 class ShaderEffect {
 public:
   ShaderEffect(Device &device);
-  ~ShaderEffect(){};
+  ~ShaderEffect();
 
   void addStage(std::shared_ptr<ShaderStage> shader);
   std::vector<VkPipelineShaderStageCreateInfo> fillStages();
