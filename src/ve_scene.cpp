@@ -62,7 +62,7 @@ void Scene::prepare() {
     DrawCall dc =
         {currentModel.indexCount, instanceCount, currentModel.firstIndex, currentModel.vertexOffset, firstInstance};
     m_drawCalls.push_back(dc);
-    firstInstance = instanceCount;
+    firstInstance += instanceCount;
     instanceCount = 0;
     currentModel = m_gameObjects[i].model;
   }
