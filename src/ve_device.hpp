@@ -3,7 +3,7 @@
 #include "ve_buffer.hpp"
 #include "ve_window.hpp"
 
-#include "vk_mem_alloc.h"
+#include "vk_mem_alloc/vk_mem_alloc.h"
 
 // std lib headers
 #include <string>
@@ -55,19 +55,27 @@ public:
   uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
   QueueFamilyIndices findPhysicalQueueFamilies() { return findQueueFamilies(m_physicalDevice); }
   VkFormat findSupportedFormat(
-      const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
+      const std::vector<VkFormat> &candidates,
+      VkImageTiling tiling,
+      VkFormatFeatureFlags features);
 
   // Buffer Helper Functions
   VkCommandBuffer beginSingleTimeCommands();
   void endSingleTimeCommands(VkCommandBuffer commandBuffer);
   void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
   void copyBuffer(
-      VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkDeviceSize srcOffset, VkDeviceSize dstOffset);
+      VkBuffer srcBuffer,
+      VkBuffer dstBuffer,
+      VkDeviceSize size,
+      VkDeviceSize srcOffset,
+      VkDeviceSize dstOffset);
   void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t layerCount);
   size_t padUniformBufferSize(size_t originalSize);
 
   void createImageWithInfo(
-      const VkImageCreateInfo &imageInfo, VkMemoryPropertyFlags properties, VkImage &image,
+      const VkImageCreateInfo &imageInfo,
+      VkMemoryPropertyFlags properties,
+      VkImage &image,
       VkDeviceMemory &imageMemory);
 
   VkPhysicalDeviceProperties properties;

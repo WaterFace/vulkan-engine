@@ -2,7 +2,7 @@
 
 #include <vulkan/vulkan.h>
 
-#include "vk_mem_alloc.h"
+#include "vk_mem_alloc/vk_mem_alloc.h"
 
 namespace ve {
 
