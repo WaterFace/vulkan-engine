@@ -108,7 +108,3 @@ add_subdirectory(glm)
 target_link_libraries(vulkan-engine glm::glm)
 
 target_include_directories(vulkan-engine PRIVATE ${PROJECT_SOURCE_DIR}/tinygltf)
-
-# add_subdirectory(assimp)
-# SET(ASSIMP_BUILD_TESTS OFF)
-# target_link_libraries(vulkan-engine Assimp)
