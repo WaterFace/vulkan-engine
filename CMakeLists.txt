@@ -76,6 +76,8 @@ set(SOURCES
     src/ve_scene.cpp
     src/ve_types.hpp
     src/ve_types.cpp
+    src/ve_image.hpp
+    src/ve_image.cpp
 
     src/simple_render_system.hpp
     src/simple_render_system.cpp
