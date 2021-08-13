@@ -24,7 +24,8 @@ function(add_shader TARGET SHADER)
 endfunction(add_shader)
 
 set(SOURCES
-    src/vk_mem_alloc.h
+    src/vk_mem_alloc/vk_mem_alloc.h
+    src/vk_mem_alloc/vk_mem_alloc.cpp
 
     src/spirv_reflect/include/spirv/unified1/spirv.h
     src/spirv_reflect/spirv_reflect.h
