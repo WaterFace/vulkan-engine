@@ -75,7 +75,8 @@
 			"numbers": "cpp",
 			"semaphore": "cpp",
 			"stop_token": "cpp",
-			"valarray": "cpp"
+			"valarray": "cpp",
+			"vk_mem_alloc.h": "c"
 		}
 	}
 }
