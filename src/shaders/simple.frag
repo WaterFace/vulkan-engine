@@ -40,6 +40,25 @@ layout(set = 0, binding = 2) buffer LightData{
   PointLight lights[];
 } lights;
 
+layout(set = 1, binding = 0) uniform sampler samp;
+layout(set = 1, binding = 1) uniform texture2D textures[5];
+
+vec3 getNormal() {
+  vec3 tangentNormal = texture(sampler2D(textures[3], samp), fragUV0).xyz;
+
+  vec3 q1 = dFdx(fragPosition);
+	vec3 q2 = dFdy(fragPosition);
+	vec2 st1 = dFdx(fragUV0);
+	vec2 st2 = dFdy(fragUV0);
+
+	vec3 N = normalize(fragNormal);
+	vec3 T = normalize(q1 * st2.t - q2 * st1.t);
+	vec3 B = -normalize(cross(N, T));
+	mat3 TBN = mat3(T, B, N);
+
+	return normalize(TBN * tangentNormal);
+}
+
 void main() {
   // these would be specified by the material
   const vec3 k_s = vec3(1.0f, 1.0f, 1.0f);
@@ -47,7 +66,9 @@ void main() {
   const vec3 k_a = vec3(0.05f, 0.05f, 0.05f);
   const float shininess = 30;
 
-  vec3 color = k_a * fragColor;
+  const vec3 diffuseTexture = texture(sampler2D(textures[0], samp), fragUV0).xyz;
+
+  vec3 color = k_a * fragColor * diffuseTexture;
 
   vec3 V = normalize(camera.position - fragPosition);
   for (int i = 0; i < lights.numLights; i++) {
@@ -57,7 +78,7 @@ void main() {
     dist *= dist;
     lightDir = normalize(lightDir);
 
-    vec3 normal = normalize(fragNormal);
+    vec3 normal = getNormal();
 
     float lambertian = max(dot(lightDir, normal), 0.0f);
     float specular = 0.0f;
@@ -72,7 +93,7 @@ void main() {
 
     vec3 diffuseColor = lights.lights[i].diffuseColor;
     float diffusePower = lights.lights[i].diffusePower;
-    color += k_d * lambertian * diffuseColor * diffusePower / dist;
+    color += k_d * diffuseTexture * lambertian * diffuseColor * diffusePower / dist;
 
     vec3 specularColor = lights.lights[i].specularColor;
     float specularPower = lights.lights[i].specularPower;
@@ -80,4 +101,5 @@ void main() {
   }
 
   outColor = vec4(color, 1.0);
+  // outColor = texture(sampler2D(textures[0], samp), fragUV0);
 }
