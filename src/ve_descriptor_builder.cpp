@@ -4,7 +4,8 @@
 
 namespace ve {
 
-DescriptorLayoutCache::DescriptorLayoutCache(VkDevice device) : m_device{device} {}
+DescriptorLayoutCache::DescriptorLayoutCache(VkDevice device)
+    : m_device{device} {}
 DescriptorLayoutCache::~DescriptorLayoutCache() {
   for (auto pair : m_cache) {
     vkDestroyDescriptorSetLayout(m_device, pair.second, nullptr);
@@ -28,8 +29,10 @@ VkDescriptorSetLayout DescriptorLayoutCache::createDescriptorLayout(VkDescriptor
   }
 
   if (!isSorted) {
-    std::sort(layoutInfo.bindings.begin(), layoutInfo.bindings.end(),
-              [](VkDescriptorSetLayoutBinding &a, VkDescriptorSetLayoutBinding &b) { return a.binding < b.binding; });
+    std::sort(
+        layoutInfo.bindings.begin(),
+        layoutInfo.bindings.end(),
+        [](VkDescriptorSetLayoutBinding &a, VkDescriptorSetLayoutBinding &b) { return a.binding < b.binding; });
   }
 
   auto it = m_cache.find(layoutInfo);
@@ -91,8 +94,11 @@ DescriptorBuilder DescriptorBuilder::begin(DescriptorLayoutCache *layoutCache, D
   return builder;
 }
 
-DescriptorBuilder &DescriptorBuilder::bindBuffer(uint32_t binding, VkDescriptorBufferInfo *bufferInfo,
-                                                 VkDescriptorType type, VkShaderStageFlags stageFlags) {
+DescriptorBuilder &DescriptorBuilder::bindBuffer(
+    uint32_t binding,
+    VkDescriptorBufferInfo *bufferInfo,
+    VkDescriptorType type,
+    VkShaderStageFlags stageFlags) {
   VkDescriptorSetLayoutBinding newBinding{};
   newBinding.descriptorCount = 1;
   newBinding.descriptorType = type;
@@ -114,8 +120,11 @@ DescriptorBuilder &DescriptorBuilder::bindBuffer(uint32_t binding, VkDescriptorB
   return *this;
 }
 
-DescriptorBuilder &DescriptorBuilder::bindImage(uint32_t binding, VkDescriptorImageInfo *imageInfo,
-                                                VkDescriptorType type, VkShaderStageFlags stageFlags) {
+DescriptorBuilder &DescriptorBuilder::bindImage(
+    uint32_t binding,
+    const VkDescriptorImageInfo *imageInfo,
+    VkDescriptorType type,
+    VkShaderStageFlags stageFlags) {
   VkDescriptorSetLayoutBinding newBinding{};
   newBinding.descriptorCount = 1;
   newBinding.descriptorType = type;
@@ -130,6 +139,85 @@ DescriptorBuilder &DescriptorBuilder::bindImage(uint32_t binding, VkDescriptorIm
   newWrite.pNext = nullptr;
   newWrite.descriptorCount = 1;
   newWrite.descriptorType = type;
+  newWrite.pImageInfo = imageInfo;
+  newWrite.dstBinding = binding;
+
+  m_writes.push_back(newWrite);
+  return *this;
+}
+
+DescriptorBuilder &DescriptorBuilder::bindImages(
+    uint32_t binding,
+    uint32_t count,
+    const VkDescriptorImageInfo *imageInfo,
+    VkDescriptorType type,
+    VkShaderStageFlags stageFlags) {
+  VkDescriptorSetLayoutBinding newBinding{};
+  newBinding.descriptorCount = count;
+  newBinding.descriptorType = type;
+  newBinding.stageFlags = stageFlags;
+  newBinding.binding = binding;
+  newBinding.pImmutableSamplers = nullptr;
+
+  m_bindings.push_back(newBinding);
+
+  VkWriteDescriptorSet newWrite{};
+  newWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  newWrite.pNext = nullptr;
+  newWrite.descriptorCount = count;
+  newWrite.descriptorType = type;
+  newWrite.pImageInfo = imageInfo;
+  newWrite.dstBinding = binding;
+
+  m_writes.push_back(newWrite);
+  return *this;
+}
+
+DescriptorBuilder &DescriptorBuilder::bindCombinedSampler(
+    uint32_t binding,
+    uint32_t count,
+    const VkDescriptorImageInfo *imageInfo,
+    VkShaderStageFlags stageFlags) {
+  VkDescriptorSetLayoutBinding newBinding{};
+  newBinding.descriptorCount = count;
+  newBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+  newBinding.stageFlags = stageFlags;
+  newBinding.binding = binding;
+  newBinding.pImmutableSamplers = nullptr;
+
+  m_bindings.push_back(newBinding);
+
+  VkWriteDescriptorSet newWrite{};
+  newWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  newWrite.pNext = nullptr;
+  newWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+  newWrite.descriptorCount = count;
+  newWrite.pImageInfo = imageInfo;
+  newWrite.dstBinding = binding;
+
+  m_writes.push_back(newWrite);
+  return *this;
+}
+
+DescriptorBuilder &DescriptorBuilder::bindSamplers(
+    uint32_t binding,
+    uint32_t count,
+    const VkDescriptorImageInfo *imageInfo,
+    VkShaderStageFlags stageFlags) {
+  VkDescriptorSetLayoutBinding newBinding{};
+  newBinding.descriptorCount = count;
+  newBinding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
+  newBinding.stageFlags = stageFlags;
+  newBinding.binding = binding;
+  newBinding.pImmutableSamplers = nullptr;
+
+  m_bindings.push_back(newBinding);
+
+  VkWriteDescriptorSet newWrite{};
+  newWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  newWrite.pNext = nullptr;
+  newWrite.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
+  newWrite.descriptorCount = count;
   newWrite.pImageInfo = imageInfo;
   newWrite.dstBinding = binding;
 

@@ -37,10 +37,32 @@ class DescriptorBuilder {
 public:
   static DescriptorBuilder begin(DescriptorLayoutCache *layoutCache, DescriptorAllocator *allocator);
 
-  DescriptorBuilder &bindBuffer(uint32_t binding, VkDescriptorBufferInfo *bufferInfo, VkDescriptorType type,
-                                VkShaderStageFlags stageFlags);
-  DescriptorBuilder &bindImage(uint32_t binding, VkDescriptorImageInfo *imageInfo, VkDescriptorType type,
-                               VkShaderStageFlags stageFlags);
+  DescriptorBuilder &bindBuffer(
+      uint32_t binding,
+      VkDescriptorBufferInfo *bufferInfo,
+      VkDescriptorType type,
+      VkShaderStageFlags stageFlags);
+  DescriptorBuilder &bindImage(
+      uint32_t binding,
+      const VkDescriptorImageInfo *imageInfo,
+      VkDescriptorType type,
+      VkShaderStageFlags stageFlags);
+  DescriptorBuilder &bindImages(
+      uint32_t binding,
+      uint32_t count,
+      const VkDescriptorImageInfo *imageInfo,
+      VkDescriptorType type,
+      VkShaderStageFlags stageFlags);
+  DescriptorBuilder &bindSamplers(
+      uint32_t binding,
+      uint32_t count,
+      const VkDescriptorImageInfo *imageInfo,
+      VkShaderStageFlags stageFlags);
+  DescriptorBuilder &bindCombinedSampler(
+      uint32_t binding,
+      uint32_t count,
+      const VkDescriptorImageInfo *imageInfo,
+      VkShaderStageFlags stageFlags);
 
   bool build(VkDescriptorSet &set, VkDescriptorSetLayout &layout);
   bool build(VkDescriptorSet &set);
