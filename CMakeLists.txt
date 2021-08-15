@@ -78,6 +78,10 @@ set(SOURCES
     src/ve_types.cpp
     src/ve_image.hpp
     src/ve_image.cpp
+    src/ve_texture.hpp
+    src/ve_texture.cpp
+    src/ve_texture_loader.hpp
+    src/ve_texture_loader.cpp
 
     src/simple_render_system.hpp
     src/simple_render_system.cpp

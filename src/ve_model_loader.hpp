@@ -3,6 +3,7 @@
 #include "ve_buffer.hpp"
 #include "ve_device.hpp"
 #include "ve_model.hpp"
+#include "ve_texture_loader.hpp"
 
 #include <memory>
 #include <string>
@@ -25,6 +26,8 @@ public:
 
   bool invalidBuffers() { return m_invalidBuffers; }
 
+  TextureLoader &textureLoader() { return m_textureLoader; }
+
   static const std::string MODEL_PATH;
   Model load(const Model::Data &data);
   Model loadFromglTF(const std::string &filepath);
@@ -34,6 +37,8 @@ private:
   void growIndexBuffer();
 
   bool m_invalidBuffers{true};
+
+  TextureLoader m_textureLoader;
 
   static constexpr VkDeviceSize INITIAL_BUFFER_SIZE = 1000;
   Device &m_device;

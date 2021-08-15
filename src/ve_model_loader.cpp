@@ -10,7 +10,8 @@ const std::string ModelLoader::MODEL_PATH = "models/";
 
 ModelLoader::ModelLoader(Device &device)
     : m_device{device}
-    , m_invalidBuffers{true} {
+    , m_invalidBuffers{true}
+    , m_textureLoader{device} {
   m_bigVertexBuffer = std::make_unique<Buffer>(m_device.getAllocator());
   m_bigIndexBuffer = std::make_unique<Buffer>(m_device.getAllocator());
   m_bigVertexBuffer->create(

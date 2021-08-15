@@ -104,6 +104,11 @@ void App::loadGameObjects() {
   // Model cubeModel = createCubeModel(m_device, {0.0f, 0.0f, 0.0f});
   // Model cubeModel = m_modelLoader.loadFromglTF("models/cube.gltf");
   Model monkeyModel = m_modelLoader.loadFromglTF("smooth-monkey.glb");
+  Texture goldColor = m_modelLoader.textureLoader().loadFromFile("gold/color.png");
+  Texture goldDisplacement = m_modelLoader.textureLoader().loadFromFile("gold/displacement.png");
+  Texture goldMetal = m_modelLoader.textureLoader().loadFromFile("gold/metal.png");
+  Texture goldNormal = m_modelLoader.textureLoader().loadFromFile("gold/normal.png");
+  Texture goldRough = m_modelLoader.textureLoader().loadFromFile("gold/rough.png");
 
   auto monkey = GameObject::createGameObject();
   monkey.model = monkeyModel;

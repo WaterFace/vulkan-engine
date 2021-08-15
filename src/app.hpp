@@ -5,6 +5,7 @@
 #include "ve_game_object.hpp"
 #include "ve_model_loader.hpp"
 #include "ve_renderer.hpp"
+#include "ve_texture_loader.hpp"
 #include "ve_timer.hpp"
 #include "ve_window.hpp"
 
