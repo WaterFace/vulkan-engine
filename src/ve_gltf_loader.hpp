@@ -22,8 +22,27 @@ struct BoundingBox {
   BoundingBox(glm::vec3 min, glm::vec3 max);
   BoundingBox getAABB(glm::mat4 m);
 };
-struct TextureSampler {};
-struct Texture {};
+struct TextureSampler {
+  VkFilter magFilter;
+  VkFilter minFilter;
+  VkSamplerAddressMode addressModeU;
+  VkSamplerAddressMode addressModeV;
+  VkSamplerAddressMode addressModeW;
+  static TextureSampler defaultSampler() {
+    return {
+        VK_FILTER_LINEAR,
+        VK_FILTER_LINEAR,
+        VK_SAMPLER_ADDRESS_MODE_REPEAT,
+        VK_SAMPLER_ADDRESS_MODE_REPEAT,
+        VK_SAMPLER_ADDRESS_MODE_REPEAT};
+  }
+};
+struct Texture {
+  uint32_t width;
+  uint32_t height;
+  uint32_t mipLevels;
+  uint32_t layerCount;
+};
 struct Material {};
 struct Primitive {
   uint32_t firstIndex;
