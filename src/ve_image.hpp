@@ -8,10 +8,7 @@ namespace ve {
 
 class Image {
 public:
-  Image(VmaAllocator allocator)
-      : image{VK_NULL_HANDLE}
-      , allocation{VK_NULL_HANDLE}
-      , m_allocator{allocator} {};
+  Image(VmaAllocator allocator) : image{VK_NULL_HANDLE}, allocation{VK_NULL_HANDLE}, m_allocator{allocator} {};
   ~Image();
 
   VkImage image;
@@ -20,16 +17,8 @@ public:
   Image(const Image &) = delete;
   Image &operator=(const Image &) = delete;
 
-  void write(void *data, VkDeviceSize size);
-  void write(void *data, VkDeviceSize size, VkDeviceSize offset);
-
-  void *data() { return m_data; }
-  void mapMemory();
-  void unmapMemory();
   void create(
-      VkDeviceSize size,
-      VkImageUsageFlags usage,
-      VkMemoryPropertyFlags properties,
+      VkImageCreateInfo *createInfo, VkMemoryPropertyFlags properties,
       VmaMemoryUsage vmaUsage = VMA_MEMORY_USAGE_CPU_TO_GPU);
 
 private:
