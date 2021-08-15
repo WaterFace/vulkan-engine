@@ -96,6 +96,8 @@ SimpleRenderSystem::SimpleRenderSystem(Device &device, ModelLoader &modelLoader,
   lightBufferInfo.offset = 0;
   lightBufferInfo.range = VK_WHOLE_SIZE;
 
+  VkDescriptorSet set0, set1;
+
   DescriptorBuilder::begin(&m_descriptorCache, &m_descriptorAllocator)
       .bindBuffer(
           0,
@@ -112,7 +114,20 @@ SimpleRenderSystem::SimpleRenderSystem(Device &device, ModelLoader &modelLoader,
           &lightBufferInfo,
           VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
           VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_VERTEX_BIT)
-      .build(m_descriptorSet);
+      .build(set0);
+
+  DescriptorBuilder::begin(&m_descriptorCache, &m_descriptorAllocator)
+      .bindSamplers(0, 1, &m_modelLoader.textureLoader().globalSamplerInfo(), VK_SHADER_STAGE_FRAGMENT_BIT)
+      .bindImages(
+          1,
+          m_modelLoader.textureLoader().descriptorCount(),
+          m_modelLoader.textureLoader().descriptorInfos().data(),
+          VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,
+          VK_SHADER_STAGE_FRAGMENT_BIT)
+      .build(set1);
+  // std::cout << m_modelLoader.textureLoader().descriptorCount() << std::endl;
+  m_descriptorSets.push_back(set0);
+  m_descriptorSets.push_back(set1);
 }
 
 SimpleRenderSystem::~SimpleRenderSystem() {
@@ -193,8 +208,8 @@ void SimpleRenderSystem::renderGameObjects(
       VK_PIPELINE_BIND_POINT_GRAPHICS,
       m_pipeline->layout(),
       0,
-      1,
-      &m_descriptorSet,
+      static_cast<uint32_t>(m_descriptorSets.size()),
+      m_descriptorSets.data(),
       0,
       nullptr);
   m_scene.draw(cmd);

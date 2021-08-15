@@ -38,7 +38,7 @@ private:
   Timer m_timer{};
   Scene m_scene;
 
-  VkDescriptorSet m_descriptorSet;
+  std::vector<VkDescriptorSet> m_descriptorSets;
   Buffer m_uniformBuffer;
   Buffer m_objectBuffer;
   Buffer m_lightBuffer;
