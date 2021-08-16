@@ -157,7 +157,7 @@ void SimpleRenderSystem::createPipelineLayout() {
 void SimpleRenderSystem::createPipeline(VkRenderPass renderPass) {
 
   auto vertShader = std::make_shared<ShaderStage>(m_device, "shaders/simple.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
-  auto fragShader = std::make_shared<ShaderStage>(m_device, "shaders/simple.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
+  auto fragShader = std::make_shared<ShaderStage>(m_device, "shaders/pbr.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
 
   PipelineBuilder builder(m_device);
 
