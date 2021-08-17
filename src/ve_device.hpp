@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ve_buffer.hpp"
+#include "ve_image.hpp"
 #include "ve_window.hpp"
 
 #include "vk_mem_alloc/vk_mem_alloc.h"
@@ -70,6 +71,17 @@ public:
       VkDeviceSize srcOffset,
       VkDeviceSize dstOffset);
   void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t layerCount);
+  void imageLayoutTransition(
+      VkImage image,
+      uint32_t layerCount,
+      uint32_t levelCount,
+      VkImageAspectFlags aspectMask,
+      VkImageLayout oldLayout,
+      VkImageLayout newLayout,
+      VkAccessFlags srcAccessMask,
+      VkAccessFlags dstAccessMask,
+      VkPipelineStageFlags srcStageMask,
+      VkPipelineStageFlags dstStageMask);
   size_t padUniformBufferSize(size_t originalSize);
 
   void createImageWithInfo(

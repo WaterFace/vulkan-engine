@@ -10,15 +10,19 @@ namespace ve {
 
 // local callback functions
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
-    VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType,
-    const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData, void *pUserData) {
+    VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+    VkDebugUtilsMessageTypeFlagsEXT messageType,
+    const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
+    void *pUserData) {
   std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
 
   return VK_FALSE;
 }
 
 VkResult CreateDebugUtilsMessengerEXT(
-    VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT *pCreateInfo, const VkAllocationCallbacks *pAllocator,
+    VkInstance instance,
+    const VkDebugUtilsMessengerCreateInfoEXT *pCreateInfo,
+    const VkAllocationCallbacks *pAllocator,
     VkDebugUtilsMessengerEXT *pDebugMessenger) {
   auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
   if (func != nullptr) {
@@ -29,7 +33,9 @@ VkResult CreateDebugUtilsMessengerEXT(
 }
 
 void DestroyDebugUtilsMessengerEXT(
-    VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks *pAllocator) {
+    VkInstance instance,
+    VkDebugUtilsMessengerEXT debugMessenger,
+    const VkAllocationCallbacks *pAllocator) {
   auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
   if (func != nullptr) {
     func(instance, debugMessenger, pAllocator);
@@ -37,7 +43,8 @@ void DestroyDebugUtilsMessengerEXT(
 }
 
 // class member functions
-Device::Device(Window &window) : m_window{window} {
+Device::Device(Window &window)
+    : m_window{window} {
   createInstance();
   setupDebugMessenger();
   createSurface();
@@ -396,7 +403,9 @@ VkSampleCountFlagBits Device::getMaxUseableSampleCount() {
 }
 
 VkFormat Device::findSupportedFormat(
-    const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features) {
+    const std::vector<VkFormat> &candidates,
+    VkImageTiling tiling,
+    VkFormatFeatureFlags features) {
   for (VkFormat format : candidates) {
     VkFormatProperties props;
     vkGetPhysicalDeviceFormatProperties(m_physicalDevice, format, &props);
@@ -459,7 +468,11 @@ void Device::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize siz
 }
 
 void Device::copyBuffer(
-    VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkDeviceSize srcOffset, VkDeviceSize dstOffset) {
+    VkBuffer srcBuffer,
+    VkBuffer dstBuffer,
+    VkDeviceSize size,
+    VkDeviceSize srcOffset,
+    VkDeviceSize dstOffset) {
   VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 
   VkBufferCopy copyRegion{};
@@ -491,6 +504,43 @@ void Device::copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, u
   endSingleTimeCommands(commandBuffer);
 }
 
+void Device::imageLayoutTransition(
+    VkImage image,
+    uint32_t layerCount,
+    uint32_t levelCount,
+    VkImageAspectFlags aspectMask,
+    VkImageLayout oldLayout,
+    VkImageLayout newLayout,
+    VkAccessFlags srcAccessMask,
+    VkAccessFlags dstAccessMask,
+    VkPipelineStageFlags srcStageMask,
+    VkPipelineStageFlags dstStageMask) {
+  VkCommandBuffer cmd = beginSingleTimeCommands();
+
+  VkImageSubresourceRange range{};
+  range.aspectMask = aspectMask;
+  range.layerCount = layerCount;
+  range.baseArrayLayer = 0;
+  range.levelCount = levelCount;
+  range.baseMipLevel = 0;
+
+  VkImageMemoryBarrier imageBarrierToTransfer{};
+  imageBarrierToTransfer.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+  imageBarrierToTransfer.pNext = nullptr;
+
+  imageBarrierToTransfer.oldLayout = oldLayout;
+  imageBarrierToTransfer.newLayout = newLayout;
+  imageBarrierToTransfer.image = image;
+  imageBarrierToTransfer.subresourceRange = range;
+
+  imageBarrierToTransfer.srcAccessMask = srcAccessMask;
+  imageBarrierToTransfer.dstAccessMask = dstAccessMask;
+
+  vkCmdPipelineBarrier(cmd, srcStageMask, dstStageMask, 0, 0, nullptr, 0, nullptr, 1, &imageBarrierToTransfer);
+
+  endSingleTimeCommands(cmd);
+}
+
 size_t Device::padUniformBufferSize(size_t originalSize) {
   // from https://github.com/SaschaWillems/Vulkan/tree/master/examples/dynamicuniformbuffer
 
@@ -504,7 +554,10 @@ size_t Device::padUniformBufferSize(size_t originalSize) {
 }
 
 void Device::createImageWithInfo(
-    const VkImageCreateInfo &imageInfo, VkMemoryPropertyFlags properties, VkImage &image, VkDeviceMemory &imageMemory) {
+    const VkImageCreateInfo &imageInfo,
+    VkMemoryPropertyFlags properties,
+    VkImage &image,
+    VkDeviceMemory &imageMemory) {
   if (vkCreateImage(m_device, &imageInfo, nullptr, &image) != VK_SUCCESS) {
     throw std::runtime_error("failed to create image!");
   }
