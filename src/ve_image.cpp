@@ -13,8 +13,16 @@ Image::~Image() { vmaDestroyImage(m_allocator, image, allocation); }
 
 void Image::create(
     VkImageCreateInfo *createInfo,
+    VkImageAspectFlags imageAspect,
     VkMemoryPropertyFlags properties,
     VmaMemoryUsage vmaUsage /*= VMA_MEMORY_USAGE_CPU_TO_GPU*/) {
+  m_imageAspect = imageAspect;
+  m_imageType = createInfo->imageType;
+  m_format = createInfo->format;
+  m_extent = createInfo->extent;
+  m_mipLevels = createInfo->mipLevels;
+  m_arrayLayers = createInfo->arrayLayers;
+  m_samples = createInfo->samples;
 
   VmaAllocationCreateInfo allocInfo{};
   allocInfo.usage = vmaUsage;
@@ -22,23 +30,29 @@ void Image::create(
 
   auto result = vmaCreateImage(m_allocator, createInfo, &allocInfo, &image, &allocation, nullptr);
   if (result != VK_SUCCESS) {
-    std::cout << "result: " << result << std::endl;
-    std::cout << "flags: " << createInfo->flags << std::endl;
-    std::cout << "imageType: " << createInfo->imageType << std::endl;
-    std::cout << "format: " << createInfo->format << std::endl;
-    std::cout << "extent: " << createInfo->extent.width << " " << createInfo->extent.height << " "
-              << createInfo->extent.depth << std::endl;
-    std::cout << "format: " << createInfo->format << std::endl;
-    std::cout << "mipLevels: " << createInfo->mipLevels << std::endl;
-    std::cout << "arrayLayers: " << createInfo->arrayLayers << std::endl;
-    std::cout << "samples: " << createInfo->samples << std::endl;
-    std::cout << "tiling: " << createInfo->tiling << std::endl;
-    std::cout << "usage: " << createInfo->usage << std::endl;
-    std::cout << "sharingMode: " << createInfo->sharingMode << std::endl;
-    std::cout << "initialLayout: " << createInfo->initialLayout << std::endl;
-
     throw std::runtime_error("Failed to create image!");
   }
+
+  VkImageSubresourceRange range{};
+  range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+  range.layerCount = m_arrayLayers;
+  range.baseArrayLayer = 0;
+  range.levelCount = m_mipLevels;
+  range.baseMipLevel = 0;
+
+  m_subresourceRange = range;
+
+  VkImageViewCreateInfo imageViewInfo{};
+  imageViewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+  imageViewInfo.pNext = nullptr;
+
+  imageViewInfo.image = image;
+  imageViewInfo.flags = 0;
+  imageViewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+  imageViewInfo.format = m_format;
+  imageViewInfo.subresourceRange = m_subresourceRange;
+
+  m_imageViewInfo = imageViewInfo;
 }
 
 } // namespace ve
