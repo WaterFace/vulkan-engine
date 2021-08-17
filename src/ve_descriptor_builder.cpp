@@ -173,7 +173,7 @@ DescriptorBuilder &DescriptorBuilder::bindImages(
   return *this;
 }
 
-DescriptorBuilder &DescriptorBuilder::bindCombinedSampler(
+DescriptorBuilder &DescriptorBuilder::bindCombinedSamplers(
     uint32_t binding,
     uint32_t count,
     const VkDescriptorImageInfo *imageInfo,

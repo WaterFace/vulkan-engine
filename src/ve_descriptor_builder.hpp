@@ -58,7 +58,7 @@ public:
       uint32_t count,
       const VkDescriptorImageInfo *imageInfo,
       VkShaderStageFlags stageFlags);
-  DescriptorBuilder &bindCombinedSampler(
+  DescriptorBuilder &bindCombinedSamplers(
       uint32_t binding,
       uint32_t count,
       const VkDescriptorImageInfo *imageInfo,
