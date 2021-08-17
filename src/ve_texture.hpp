@@ -8,7 +8,6 @@ namespace ve {
 
 class Texture {
 public:
-  // an ID of SIZE_MAX indicates an error
   size_t id;
 
   static VkSamplerCreateInfo defaultSamplerInfo() {
