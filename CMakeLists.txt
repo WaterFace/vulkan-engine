@@ -82,6 +82,8 @@ set(SOURCES
     src/ve_texture.cpp
     src/ve_texture_loader.hpp
     src/ve_texture_loader.cpp
+    src/ve_material.hpp
+    src/ve_material.cpp
 
     src/simple_render_system.hpp
     src/simple_render_system.cpp
@@ -98,6 +100,7 @@ target_include_directories(vulkan-engine PRIVATE ${PROJECT_SOURCE_DIR})
 
 add_shader(vulkan-engine simple.vert)
 add_shader(vulkan-engine simple.frag)
+add_shader(vulkan-engine pbr.frag)
 
 find_package(Vulkan REQUIRED)
 target_link_libraries(vulkan-engine Vulkan::Vulkan)
