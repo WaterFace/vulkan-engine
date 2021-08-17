@@ -117,12 +117,10 @@ SimpleRenderSystem::SimpleRenderSystem(Device &device, ModelLoader &modelLoader,
       .build(set0);
 
   DescriptorBuilder::begin(&m_descriptorCache, &m_descriptorAllocator)
-      .bindSamplers(0, 1, &m_modelLoader.textureLoader().globalSamplerInfo(), VK_SHADER_STAGE_FRAGMENT_BIT)
-      .bindImages(
-          1,
-          m_modelLoader.textureLoader().descriptorCount(),
+      .bindCombinedSamplers(
+          0,
+          TextureLoader::MAX_TEXTURES,
           m_modelLoader.textureLoader().descriptorInfos().data(),
-          VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,
           VK_SHADER_STAGE_FRAGMENT_BIT)
       .build(set1);
   // std::cout << m_modelLoader.textureLoader().descriptorCount() << std::endl;

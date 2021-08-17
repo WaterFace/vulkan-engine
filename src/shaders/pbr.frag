@@ -1,6 +1,7 @@
 #version 450
 
 #define MATH_PI 3.1415926535897932384626433832795
+#define MAX_TEXTURES 1000
 
 // pos and normal coordinates are in world space
 layout(location = 0) in vec3 fragPosition;
@@ -42,11 +43,10 @@ layout(set = 0, binding = 2) buffer LightData{
   PointLight lights[];
 } lights;
 
-layout(set = 1, binding = 0) uniform sampler samp;
-layout(set = 1, binding = 1) uniform texture2D textures[5];
+layout(set = 1, binding = 0) uniform sampler2D samplers[MAX_TEXTURES];
 
 vec3 getNormal() {
-  vec3 tangentNormal = texture(sampler2D(textures[3], samp), fragUV0).xyz;
+  vec3 tangentNormal = texture(samplers[4], fragUV0).xyz;
 
   vec3 q1 = dFdx(fragPosition);
 	vec3 q2 = dFdy(fragPosition);
@@ -103,10 +103,10 @@ void main() {
   vec3 N = getNormal();
   vec3 V = normalize(camera.position - fragPosition);
 
-  vec3 albedo = texture(sampler2D(textures[0], samp), fragUV0).rgb;
+  vec3 albedo = texture(samplers[1], fragUV0).rgb;
   albedo = pow(albedo, vec3(2.2));
-  float metallic = texture(sampler2D(textures[2], samp), fragUV0).r;
-  float roughness = texture(sampler2D(textures[4], samp), fragUV0).r;
+  float metallic = texture(samplers[3], fragUV0).r;
+  float roughness = texture(samplers[5], fragUV0).r;
 
   vec3 Lo = vec3(0.0);
   for(int i = 0; i < lights.numLights; i++) {
