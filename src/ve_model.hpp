@@ -47,6 +47,7 @@ public:
   void draw(VkCommandBuffer cmd) { vkCmdDrawIndexed(cmd, indexCount, 1, firstIndex, vertexOffset, 0); };
 
   bool operator==(const Model &other);
+  uint32_t material{0};
   uint32_t vertexCount;
   uint32_t indexCount;
   IndexType firstIndex;
