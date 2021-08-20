@@ -24,6 +24,9 @@ ModelLoader::ModelLoader(Device &device)
       VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
       0,
       VMA_MEMORY_USAGE_GPU_ONLY);
+
+  // add default empty material at index 0
+  m_materials.push_back(Material{});
 }
 
 ModelLoader::~ModelLoader() {}
@@ -119,9 +122,7 @@ Model ModelLoader::loadFromglTF(const std::string &filepath) {
 
   if (m_loadedModels.find(filepath) == m_loadedModels.end()) {
     glTF::Model model;
-    model.loadFromFile(MODEL_PATH + filepath, &m_device);
-
-    Model newModel = load(model.data);
+    Model newModel = model.loadFromFile(MODEL_PATH + filepath, *this);
     m_loadedModels[filepath] = newModel;
     return newModel;
   } else {

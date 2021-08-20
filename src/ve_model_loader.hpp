@@ -2,6 +2,7 @@
 
 #include "ve_buffer.hpp"
 #include "ve_device.hpp"
+#include "ve_material.hpp"
 #include "ve_model.hpp"
 #include "ve_texture_loader.hpp"
 
@@ -28,6 +29,11 @@ public:
 
   TextureLoader &textureLoader() { return m_textureLoader; }
 
+  size_t addMaterial(Material mat) {
+    m_materials.push_back(mat);
+    return m_materials.size() - 1;
+  };
+
   static const std::string MODEL_PATH;
   Model load(const Model::Data &data);
   Model loadFromglTF(const std::string &filepath);
@@ -37,6 +43,8 @@ private:
   void growIndexBuffer();
 
   bool m_invalidBuffers{true};
+
+  std::vector<Material> m_materials;
 
   TextureLoader m_textureLoader;
 
