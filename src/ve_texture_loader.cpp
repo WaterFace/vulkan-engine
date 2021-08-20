@@ -1,6 +1,6 @@
 #include "ve_texture_loader.hpp"
 
-#include "tinygltf/stb_image.h"
+#include "stb_image/stb_image.h"
 
 #include <cassert>
 #include <iostream>
@@ -150,7 +150,6 @@ Texture TextureLoader::loadFromFile(const std::string &path) {
 
   if (!pixels) {
     throw std::runtime_error("Failed to load texture " + path + "!");
-    return {SIZE_MAX};
   }
 
   void *pixelPtr = pixels;
