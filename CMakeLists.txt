@@ -31,6 +31,9 @@ set(SOURCES
     src/spirv_reflect/spirv_reflect.h
     src/spirv_reflect/spirv_reflect.c
 
+    src/stb_image/stb_image.h
+    src/stb_image/stb_image.cpp
+
     src/tinygltf/tiny_gltf.cc
 
     src/main.cpp
