@@ -38,12 +38,20 @@ struct TextureSampler {
   }
 };
 struct Texture {
-  uint32_t width;
-  uint32_t height;
-  uint32_t mipLevels;
-  uint32_t layerCount;
+  ve::Texture texture;
 };
-struct Material {};
+struct Material {
+  float metallicFactor = 1.0f;
+  float roughnessFactor = 1.0f;
+  glm::vec4 baseColorFactor = glm::vec4(1.0f);
+  glm::vec4 emissiveFactor = glm::vec4(1.0f);
+
+  ve::Texture baseColorTexture;
+  ve::Texture metallicRoughnessTexture;
+  ve::Texture normalTexture;
+  ve::Texture occlusionTexture;
+  ve::Texture emissiveTexture;
+};
 struct Primitive {
   uint32_t firstIndex;
   uint32_t indexCount;
