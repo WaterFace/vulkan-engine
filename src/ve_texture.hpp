@@ -8,7 +8,7 @@ namespace ve {
 
 class Texture {
 public:
-  size_t id;
+  int32_t id{-1};
 
   static VkSamplerCreateInfo defaultSamplerInfo() {
     VkSamplerCreateInfo info = {};
