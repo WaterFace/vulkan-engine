@@ -2,6 +2,8 @@
 
 #include "ve_device.hpp"
 #include "ve_model.hpp"
+#include "ve_model_loader.hpp"
+#include "ve_texture.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -122,13 +124,13 @@ struct Model {
       std::vector<ve::Model::Vertex> &vertexBuffer,
       float globalscale);
   void loadSkins(tinygltf::Model &gltfModel);
-  void loadTextures(tinygltf::Model &gltfModel, Device *device);
+  void loadTextures(tinygltf::Model &gltfModel, ve::ModelLoader &modelLoader);
   VkSamplerAddressMode getVkWrapMode(int32_t wrapMode);
   VkFilter getVkFilterMode(int32_t filterMode);
   void loadTextureSamplers(tinygltf::Model &gltfModel);
   void loadMaterials(tinygltf::Model &gltfModel);
   void loadAnimations(tinygltf::Model &gltfModel);
-  void loadFromFile(const std::string &filename, Device *device, float scale = 1.0f);
+  ve::Model loadFromFile(const std::string &filename, ve::ModelLoader &modelLoader, float scale = 1.0f);
   void calculateBoundingBox(Node *node, Node *parent);
   void getSceneDimensions();
   void updateAnimation(uint32_t index, float time);

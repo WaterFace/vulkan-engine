@@ -30,7 +30,7 @@ BoundingBox::BoundingBox(glm::vec3 min, glm::vec3 max)
     : min{min}
     , max{max} {};
 
-void Model::loadFromFile(const std::string &filename, Device *device, float scale) {
+ve::Model Model::loadFromFile(const std::string &filename, ve::ModelLoader &modelLoader, float scale) {
   tinygltf::Model gltfModel;
   tinygltf::TinyGLTF gltfContext;
   std::string error;
@@ -52,9 +52,9 @@ void Model::loadFromFile(const std::string &filename, Device *device, float scal
   std::vector<ve::Model::Vertex> vertexBuffer;
 
   if (fileLoaded) {
-    // loadTextureSamplers(gltfModel);
-    // loadTextures(gltfModel, device, transferQueue);
-    // loadMaterials(gltfModel);
+    loadTextureSamplers(gltfModel);
+    loadTextures(gltfModel, modelLoader);
+    loadMaterials(gltfModel);
     const tinygltf::Scene &scene = gltfModel.scenes[gltfModel.defaultScene > -1 ? gltfModel.defaultScene : 0];
     for (size_t i = 0; i < scene.nodes.size(); i++) {
       const tinygltf::Node node = gltfModel.nodes[scene.nodes[i]];
@@ -82,6 +82,8 @@ void Model::loadFromFile(const std::string &filename, Device *device, float scal
 
   data.indices = indexBuffer;
   data.vertices = vertexBuffer;
+  ve::Model loadedModel = modelLoader.load(data);
+  return
 }
 
 void Model::loadNode(
@@ -316,5 +318,121 @@ void Model::loadNode(
     newNode->mesh = newMesh;
   }
 }
+
+VkSamplerAddressMode Model::getVkWrapMode(int32_t wrapMode) {
+  switch (wrapMode) {
+  case 10497:
+    return VK_SAMPLER_ADDRESS_MODE_REPEAT;
+  case 33071:
+    return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+  case 33648:
+    return VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
+  default:
+    return VK_SAMPLER_ADDRESS_MODE_REPEAT;
+  }
+}
+
+VkFilter Model::getVkFilterMode(int32_t filterMode) {
+  switch (filterMode) {
+  case 9728:
+    return VK_FILTER_NEAREST;
+  case 9729:
+    return VK_FILTER_LINEAR;
+  case 9984:
+    return VK_FILTER_NEAREST;
+  case 9985:
+    return VK_FILTER_NEAREST;
+  case 9986:
+    return VK_FILTER_LINEAR;
+  case 9987:
+    return VK_FILTER_LINEAR;
+  default:
+    return VK_FILTER_LINEAR;
+  }
+}
+
+void Model::loadTextureSamplers(tinygltf::Model &gltfModel) {
+  for (tinygltf::Sampler smpl : gltfModel.samplers) {
+    glTF::TextureSampler sampler{};
+    sampler.minFilter = getVkFilterMode(smpl.minFilter);
+    sampler.magFilter = getVkFilterMode(smpl.magFilter);
+    sampler.addressModeU = getVkWrapMode(smpl.wrapS);
+    sampler.addressModeV = getVkWrapMode(smpl.wrapT);
+    sampler.addressModeW = sampler.addressModeV;
+    textureSamplers.push_back(sampler);
+  }
+}
+
+void Model::loadTextures(tinygltf::Model &gltfModel, ve::ModelLoader &modelLoader) {
+  for (tinygltf::Texture &tex : gltfModel.textures) {
+    tinygltf::Image image = gltfModel.images[tex.source];
+    glTF::TextureSampler textureSampler;
+    if (tex.sampler == -1) {
+      // No sampler specified, use a default one
+      textureSampler.magFilter = VK_FILTER_LINEAR;
+      textureSampler.minFilter = VK_FILTER_LINEAR;
+      textureSampler.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+      textureSampler.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+      textureSampler.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    } else {
+      textureSampler = textureSamplers[tex.sampler];
+    }
+    // std::cout << "gltf_loader: image size: " << image.image.size() << std::endl;
+    // std::cout << "gltf_loader: image uri: " << image.uri << std::endl;
+    // std::cout << "gltf_loader: image mimetype: " << image.mimeType << std::endl;
+    // std::cout << "gltf_loader: image size: " << image.width << "x" << image.height << std::endl;
+
+    ve::Texture loadedTexture;
+    if (image.uri.length() > 0) {
+      // Then it's an external texture
+      loadedTexture = modelLoader.textureLoader().loadFromFile(image.uri);
+    } else {
+      loadedTexture = modelLoader.textureLoader().loadFromData(image.image.data(), image.width, image.height);
+    }
+
+    glTF::Texture newTexture{loadedTexture};
+    textures.push_back(newTexture);
+  }
+}
+
+void Model::loadMaterials(tinygltf::Model &gltfModel) {
+  for (tinygltf::Material &mat : gltfModel.materials) {
+    glTF::Material material{};
+
+    if (mat.values.find("baseColorTexture") != mat.values.end()) {
+      material.baseColorTexture = textures[mat.values["baseColorTexture"].TextureIndex()].texture;
+    }
+    if (mat.values.find("metallicRoughnessTexture") != mat.values.end()) {
+      material.metallicRoughnessTexture = textures[mat.values["metallicRoughnessTexture"].TextureIndex()].texture;
+    }
+    if (mat.values.find("normalTexture") != mat.values.end()) {
+      material.normalTexture = textures[mat.values["normalTexture"].TextureIndex()].texture;
+    }
+    if (mat.values.find("occlusionTexture") != mat.values.end()) {
+      material.occlusionTexture = textures[mat.values["occlusionTexture"].TextureIndex()].texture;
+    }
+    if (mat.values.find("emissiveTexture") != mat.values.end()) {
+      material.emissiveTexture = textures[mat.values["emissiveTexture"].TextureIndex()].texture;
+    }
+    if (mat.values.find("metallicFactor") != mat.values.end()) {
+      material.metallicFactor = static_cast<float>(mat.values["metallicFactor"].Factor());
+    }
+    if (mat.values.find("roughnessFactor") != mat.values.end()) {
+      material.roughnessFactor = static_cast<float>(mat.values["roughnessFactor"].Factor());
+    }
+    if (mat.values.find("baseColorFactor") != mat.values.end()) {
+      material.baseColorFactor = glm::make_vec4(mat.values["baseColorFactor"].ColorFactor().data());
+    }
+    if (mat.values.find("emissiveFactor") != mat.values.end()) {
+      material.emissiveFactor = glm::make_vec4(mat.values["emissiveFactor"].ColorFactor().data());
+    }
+
+    materials.push_back(material);
+  }
+
+  // for models with no material
+  materials.push_back(glTF::Material{});
+}
+
 } // namespace glTF
 } // namespace ve
