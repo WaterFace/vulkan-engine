@@ -3,7 +3,7 @@
 #include "ve_buffer.hpp"
 #include "ve_device.hpp"
 #include "ve_material.hpp"
-#include "ve_model.hpp"
+#include "ve_mesh.hpp"
 #include "ve_texture_loader.hpp"
 
 #include <memory>
@@ -18,10 +18,10 @@ namespace ve {
 //   int32_t vertexOffset;
 // };
 
-class ModelLoader {
+class MeshLoader {
 public:
-  ModelLoader(Device &device);
-  ~ModelLoader();
+  MeshLoader(Device &device);
+  ~MeshLoader();
 
   void bindBuffers(VkCommandBuffer cmd);
 
@@ -35,8 +35,8 @@ public:
   };
 
   static const std::string MODEL_PATH;
-  Model load(const Model::Data &data);
-  Model loadFromglTF(const std::string &filepath);
+  // Mesh loadPrimitive(const Mesh::Data &data);
+  Mesh loadFromglTF(const std::string &filepath);
 
 private:
   void growVertexBuffer();
@@ -45,13 +45,14 @@ private:
   bool m_invalidBuffers{true};
 
   std::vector<Material> m_materials;
+  std::vector<Mesh::Primitive> m_primitives;
 
   TextureLoader m_textureLoader;
 
   static constexpr VkDeviceSize INITIAL_BUFFER_SIZE = 1000;
   Device &m_device;
 
-  std::unordered_map<std::string, Model> m_loadedModels;
+  std::unordered_map<std::string, Mesh> m_loadedModels;
 
   std::unique_ptr<Buffer> m_bigVertexBuffer;
   uint32_t m_currentVertexBufferSize{INITIAL_BUFFER_SIZE};

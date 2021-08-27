@@ -1,4 +1,4 @@
-#include "ve_model.hpp"
+#include "ve_mesh.hpp"
 
 #include <cassert>
 #include <cstring>
@@ -7,7 +7,7 @@
 
 namespace ve {
 
-std::vector<VkVertexInputBindingDescription> Model::Vertex::getBindingDescriptions() {
+std::vector<VkVertexInputBindingDescription> Mesh::Vertex::getBindingDescriptions() {
   std::vector<VkVertexInputBindingDescription> bindingDescriptions(1);
   bindingDescriptions[0].binding = 0;
   bindingDescriptions[0].stride = sizeof(Vertex);
@@ -16,7 +16,7 @@ std::vector<VkVertexInputBindingDescription> Model::Vertex::getBindingDescriptio
   return bindingDescriptions;
 }
 
-std::vector<VkVertexInputAttributeDescription> Model::Vertex::getAttributeDescriptions() {
+std::vector<VkVertexInputAttributeDescription> Mesh::Vertex::getAttributeDescriptions() {
   std::vector<VkVertexInputAttributeDescription> attributeDescriptions(5);
 
   attributeDescriptions[0].binding = 0;
@@ -47,9 +47,8 @@ std::vector<VkVertexInputAttributeDescription> Model::Vertex::getAttributeDescri
   return attributeDescriptions;
 }
 
-bool Model::operator==(const Model &other) {
-  return (this->vertexCount == other.vertexCount) && (this->vertexOffset == other.vertexOffset) &&
-         (this->firstIndex == other.firstIndex) && (this->indexCount == other.indexCount);
+bool Mesh::operator==(const Mesh &other) {
+  return (this->primitiveCount == other.primitiveCount) && (this->firstPrimitive == other.firstPrimitive);
 }
 
 } // namespace ve

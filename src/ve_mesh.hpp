@@ -11,7 +11,7 @@
 
 namespace ve {
 
-class Model {
+class Mesh {
 public:
   struct Vertex {
     glm::vec3 position;
@@ -32,26 +32,19 @@ public:
     std::vector<uint32_t> indices{};
   };
 
-  Model(uint32_t vCount, uint32_t iCount, IndexType first, int32_t offset)
-      : vertexCount{vCount}
-      , indexCount{iCount}
-      , firstIndex{first}
-      , vertexOffset{offset} {}
-  Model()
-      : vertexCount{0}
-      , indexCount{0}
-      , firstIndex{0}
-      , vertexOffset{0} {}
-  ~Model(){};
+  struct Primitive {
+    int32_t material{-1};
+    uint32_t vertexCount;
+    uint32_t indexCount;
+    Mesh::IndexType firstIndex;
+    int32_t vertexOffset;
+  };
 
-  void draw(VkCommandBuffer cmd) { vkCmdDrawIndexed(cmd, indexCount, 1, firstIndex, vertexOffset, 0); };
+  void draw(VkCommandBuffer cmd);
 
-  bool operator==(const Model &other);
-  uint32_t material{0};
-  uint32_t vertexCount;
-  uint32_t indexCount;
-  IndexType firstIndex;
-  int32_t vertexOffset;
+  bool operator==(const Mesh &other);
+  uint32_t primitiveCount;
+  uint32_t firstPrimitive;
 };
 
 } // namespace ve

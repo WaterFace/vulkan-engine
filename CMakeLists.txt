@@ -49,8 +49,10 @@ set(SOURCES
     src/ve_device.cpp
     src/ve_swapchain.hpp
     src/ve_swapchain.cpp
-    src/ve_model.hpp
-    src/ve_model.cpp
+    src/ve_mesh.hpp
+    src/ve_mesh.cpp
+    src/ve_mesh_loader.hpp
+    src/ve_mesh_loader.cpp
     src/ve_game_object.hpp
     src/ve_game_object.cpp
     src/ve_renderer.hpp
@@ -69,8 +71,6 @@ set(SOURCES
     src/ve_descriptor_builder.cpp
     src/ve_shader.hpp
     src/ve_shader.cpp
-    src/ve_model_loader.hpp
-    src/ve_model_loader.cpp
     src/ve_gltf_loader.hpp
     src/ve_gltf_loader.cpp
     src/ve_light.hpp
