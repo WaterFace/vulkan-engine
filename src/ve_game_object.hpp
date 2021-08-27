@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ve_model.hpp"
+#include "ve_mesh.hpp"
 
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -38,12 +38,13 @@ public:
 
   const id_t getID() { return m_id; }
 
-  Model model{};
+  Mesh mesh{};
   glm::vec3 color{};
   TransformComponent transform{};
 
 private:
-  GameObject(id_t id) : m_id{id} {}
+  GameObject(id_t id)
+      : m_id{id} {}
   id_t m_id;
 };
 

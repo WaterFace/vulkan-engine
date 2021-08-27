@@ -1,7 +1,5 @@
 #include "ve_pipeline.hpp"
 
-#include "ve_model.hpp"
-
 #include <cassert>
 #include <fstream>
 #include <iostream>

@@ -4,14 +4,14 @@
 
 namespace ve {
 
-Scene::Scene(ModelLoader &modelLoader)
+Scene::Scene(MeshLoader &modelLoader)
     : m_modelLoader{modelLoader} {}
 
 void Scene::addGameObject(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, std::string modelPath) {
   GameObject object = GameObject::createGameObject();
 
-  Model model = m_modelLoader.loadFromglTF(modelPath);
-  object.model = model;
+  Mesh model = m_modelLoader.loadFromglTF(modelPath);
+  object.mesh = model;
 
   object.transform.translation = position;
   object.transform.rotation = rotation;
@@ -40,10 +40,10 @@ void Scene::prepare() {
   m_drawCalls.clear();
 
   std::sort(m_gameObjects.begin(), m_gameObjects.end(), [](const GameObject &lhs, const GameObject &rhs) {
-    if (lhs.model.indexCount < rhs.model.indexCount) {
+    if (lhs.mesh.primitiveCount < rhs.mesh.primitiveCount) {
       return true;
     }
-    if (lhs.model.firstIndex < rhs.model.firstIndex) {
+    if (lhs.mesh.firstPrimitive < rhs.mesh.firstPrimitive) {
       return true;
     }
     return false;
@@ -52,19 +52,19 @@ void Scene::prepare() {
   uint32_t firstInstance = 0;
   uint32_t instanceCount = 0;
   size_t i = 0;
-  Model currentModel = m_gameObjects[0].model;
+  Mesh currentMesh = m_gameObjects[0].mesh;
 
   while (i < m_gameObjects.size()) {
-    while (m_gameObjects[i].model == currentModel) {
+    while (m_gameObjects[i].mesh == currentMesh) {
       i++;
       instanceCount++;
     }
     DrawCall dc =
-        {currentModel.indexCount, instanceCount, currentModel.firstIndex, currentModel.vertexOffset, firstInstance};
+        {currentMesh.indexCount, instanceCount, currentMesh.firstIndex, currentMesh.vertexOffset, firstInstance};
     m_drawCalls.push_back(dc);
     firstInstance += instanceCount;
     instanceCount = 0;
-    currentModel = m_gameObjects[i].model;
+    currentMesh = m_gameObjects[i].mesh;
   }
 }
 

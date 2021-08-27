@@ -20,13 +20,22 @@ struct SimplePushConstantData {
   glm::mat4 mvp{1.0f};
 };
 
-struct InstanceData {
+struct PerObjectData {
   glm::mat4 model;
   glm::mat4 normalRotation;
 };
 
 struct ObjectData {
-  InstanceData objects[SimpleRenderSystem::MAX_INSTANCE_COUNT];
+  PerObjectData objects[SimpleRenderSystem::MAX_INSTANCE_COUNT];
+};
+
+struct PerPrimitiveData {
+  uint32_t parentObject;
+  int32_t material;
+};
+
+struct PrimitiveData {
+  PerPrimitiveData primitives[SimpleRenderSystem::MAX_INSTANCE_COUNT];
 };
 
 struct UniformData {
@@ -53,11 +62,12 @@ void loadScene(Scene &scene) {
   scene.addLight({glm::vec3(0.0f, 1.0f, -1.5f), glm::vec3(0.4f, 0.4f, 0.4f), 1.0f, glm::vec3(1.0f, 1.0f, 1.0f), 0.3f});
 }
 
-SimpleRenderSystem::SimpleRenderSystem(Device &device, ModelLoader &modelLoader, VkRenderPass renderPass)
+SimpleRenderSystem::SimpleRenderSystem(Device &device, MeshLoader &modelLoader, VkRenderPass renderPass)
     : m_device{device}
     , m_modelLoader{modelLoader}
     , m_uniformBuffer{m_device.getAllocator()}
     , m_objectBuffer{m_device.getAllocator()}
+    , m_primitiveBuffer{m_device.getAllocator()}
     , m_lightBuffer{m_device.getAllocator()}
     , m_descriptorCache{device.device()}
     , m_descriptorAllocator{device.device()}
@@ -72,9 +82,14 @@ SimpleRenderSystem::SimpleRenderSystem(Device &device, ModelLoader &modelLoader,
   m_uniformBuffer.create(uniformBufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 0, VMA_MEMORY_USAGE_CPU_TO_GPU);
   m_uniformBuffer.mapMemory();
 
-  VkDeviceSize objectBufferSize = MAX_INSTANCE_COUNT * sizeof(InstanceData);
+  VkDeviceSize objectBufferSize = MAX_INSTANCE_COUNT * sizeof(PerObjectData);
   std::cout << "Using an object buffer of size " << objectBufferSize << std::endl;
   m_objectBuffer.create(objectBufferSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, 0, VMA_MEMORY_USAGE_CPU_TO_GPU);
+  m_objectBuffer.mapMemory();
+
+  VkDeviceSize primitiveBufferSize = MAX_INSTANCE_COUNT * sizeof(PerPrimitiveData);
+  std::cout << "Using a primitive buffer of size " << primitiveBufferSize << std::endl;
+  m_objectBuffer.create(primitiveBufferSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, 0, VMA_MEMORY_USAGE_CPU_TO_GPU);
   m_objectBuffer.mapMemory();
 
   VkDeviceSize lightBufferSize = sizeof(uint32_t) + MAX_LIGHT_COUNT * sizeof(PointLight);
@@ -91,6 +106,11 @@ SimpleRenderSystem::SimpleRenderSystem(Device &device, ModelLoader &modelLoader,
   objectBufferInfo.buffer = m_objectBuffer.buffer;
   objectBufferInfo.offset = 0;
   objectBufferInfo.range = VK_WHOLE_SIZE;
+
+  VkDescriptorBufferInfo primitiveBufferInfo{};
+  primitiveBufferInfo.buffer = m_primitiveBuffer.buffer;
+  primitiveBufferInfo.offset = 0;
+  primitiveBufferInfo.range = VK_WHOLE_SIZE;
 
   VkDescriptorBufferInfo lightBufferInfo{};
   lightBufferInfo.buffer = m_lightBuffer.buffer;
@@ -112,6 +132,11 @@ SimpleRenderSystem::SimpleRenderSystem(Device &device, ModelLoader &modelLoader,
           VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_VERTEX_BIT)
       .bindBuffer(
           2,
+          &primitiveBufferInfo,
+          VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+          VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_VERTEX_BIT)
+      .bindBuffer(
+          3,
           &lightBufferInfo,
           VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
           VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_VERTEX_BIT)
@@ -165,7 +190,7 @@ void SimpleRenderSystem::createPipeline(VkRenderPass renderPass) {
                    .setSampleCount(m_device.getSampleCount())
                    .reflectLayout()
                    .setRenderPass(renderPass)
-                   .setVertexInput(Model::Vertex::getBindingDescriptions(), Model::Vertex::getAttributeDescriptions())
+                   .setVertexInput(Mesh::Vertex::getBindingDescriptions(), Mesh::Vertex::getAttributeDescriptions())
                    .build();
 }
 
@@ -180,7 +205,7 @@ void SimpleRenderSystem::renderGameObjects(
 
   uint32_t totalInstanceCount = static_cast<uint32_t>(m_scene.gameObjects().size());
   assert(totalInstanceCount <= MAX_INSTANCE_COUNT && "Tried to draw more than the maximum number of instances");
-  uint32_t uniformDataSize = sizeof(UniformData) + sizeof(InstanceData) * totalInstanceCount;
+  uint32_t uniformDataSize = sizeof(UniformData) + sizeof(PerObjectData) * totalInstanceCount;
 
   UniformData *uniform = (UniformData *)m_uniformBuffer.data();
   uniform->view = camera.getView();

@@ -4,7 +4,7 @@
 #include "ve_descriptor_builder.hpp"
 #include "ve_device.hpp"
 #include "ve_game_object.hpp"
-#include "ve_model_loader.hpp"
+#include "ve_mesh_loader.hpp"
 #include "ve_pipeline.hpp"
 #include "ve_scene.hpp"
 #include "ve_timer.hpp"
@@ -19,7 +19,7 @@ public:
   SimpleRenderSystem(const SimpleRenderSystem &) = delete;
   SimpleRenderSystem &operator=(const SimpleRenderSystem &) = delete;
 
-  SimpleRenderSystem(Device &device, ModelLoader &modelLoader, VkRenderPass renderPass);
+  SimpleRenderSystem(Device &device, MeshLoader &modelLoader, VkRenderPass renderPass);
   ~SimpleRenderSystem();
 
   void renderGameObjects(VkCommandBuffer cmd, std::vector<GameObject> &gameObjects, const Camera &camera);
@@ -32,7 +32,7 @@ private:
   void createPipeline(VkRenderPass renderPass);
 
   Device &m_device;
-  ModelLoader &m_modelLoader;
+  MeshLoader &m_modelLoader;
   DescriptorLayoutCache m_descriptorCache;
   DescriptorAllocator m_descriptorAllocator;
   Timer m_timer{};
@@ -40,6 +40,7 @@ private:
 
   std::vector<VkDescriptorSet> m_descriptorSets;
   Buffer m_uniformBuffer;
+  Buffer m_primitiveBuffer;
   Buffer m_objectBuffer;
   Buffer m_lightBuffer;
 

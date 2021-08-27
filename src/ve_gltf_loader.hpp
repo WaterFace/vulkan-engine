@@ -1,8 +1,8 @@
 #pragma once
 
 #include "ve_device.hpp"
-#include "ve_model.hpp"
-#include "ve_model_loader.hpp"
+#include "ve_mesh.hpp"
+#include "ve_mesh_loader.hpp"
 #include "ve_texture.hpp"
 
 #define GLM_FORCE_RADIANS
@@ -16,14 +16,7 @@
 namespace ve {
 namespace glTF {
 struct Node;
-struct BoundingBox {
-  glm::vec3 min;
-  glm::vec3 max;
-  bool valid{false};
-  BoundingBox();
-  BoundingBox(glm::vec3 min, glm::vec3 max);
-  BoundingBox getAABB(glm::mat4 m);
-};
+struct BoundingBox {};
 struct TextureSampler {
   VkFilter magFilter;
   VkFilter minFilter;
@@ -40,7 +33,11 @@ struct TextureSampler {
   }
 };
 struct Texture {
-  ve::Texture texture;
+  bool isExternalTexture;
+  std::string texturePath;
+  std::vector<unsigned char> rawData;
+  int width;
+  int height;
 };
 struct Material {
   float metallicFactor = 1.0f;
@@ -48,29 +45,24 @@ struct Material {
   glm::vec4 baseColorFactor = glm::vec4(1.0f);
   glm::vec4 emissiveFactor = glm::vec4(1.0f);
 
-  ve::Texture baseColorTexture;
-  ve::Texture metallicRoughnessTexture;
-  ve::Texture normalTexture;
-  ve::Texture occlusionTexture;
-  ve::Texture emissiveTexture;
+  uint32_t baseColorTexture;
+  uint32_t metallicRoughnessTexture;
+  uint32_t normalTexture;
+  uint32_t occlusionTexture;
+  uint32_t emissiveTexture;
 };
 struct Primitive {
   uint32_t firstIndex;
   uint32_t indexCount;
   uint32_t vertexCount;
-  Material &material;
+  int32_t material;
   bool hasIndices;
-  BoundingBox bb;
-  Primitive(uint32_t firstIndex, uint32_t indexCount, uint32_t vertexCount, Material &material);
-  void setBoundingBox(glm::vec3 min, glm::vec3 max);
+  Primitive(uint32_t firstIndex, uint32_t indexCount, uint32_t vertexCount, int32_t material);
 };
 struct Mesh {
   std::vector<Primitive *> primitives;
-  BoundingBox bb;
-  BoundingBox aabb;
   Mesh(glm::mat4 matrix){};
   ~Mesh();
-  void setBoundingBox(glm::vec3 min, glm::vec3 max);
 };
 struct Skin {};
 struct Node {
@@ -85,8 +77,6 @@ struct Node {
   glm::vec3 translation{};
   glm::vec3 scale{1.0f};
   glm::quat rotation{};
-  BoundingBox bvh;
-  BoundingBox aabb;
   glm::mat4 localMatrix();
   glm::mat4 getMatrix();
   void update();
@@ -96,8 +86,6 @@ struct AnimationChannel {};
 struct AnimationSampler {};
 struct Animation {};
 struct Model {
-  ve::Model::Data data{};
-
   glm::mat4 aabb;
 
   std::vector<Node *> nodes;
@@ -110,6 +98,9 @@ struct Model {
   std::vector<Animation> animations;
   std::vector<std::string> extensions;
 
+  std::vector<ve::Mesh::IndexType> indexBuffer;
+  std::vector<ve::Mesh::Vertex> vertexBuffer;
+
   struct Dimensions {
     glm::vec3 min = glm::vec3(FLT_MAX);
     glm::vec3 max = glm::vec3(-FLT_MAX);
@@ -120,17 +111,17 @@ struct Model {
       const tinygltf::Node &node,
       uint32_t nodeIndex,
       const tinygltf::Model &model,
-      std::vector<ve::Model::IndexType> &indexBuffer,
-      std::vector<ve::Model::Vertex> &vertexBuffer,
+      std::vector<ve::Mesh::IndexType> &indexBuffer,
+      std::vector<ve::Mesh::Vertex> &vertexBuffer,
       float globalscale);
   void loadSkins(tinygltf::Model &gltfModel);
-  void loadTextures(tinygltf::Model &gltfModel, ve::ModelLoader &modelLoader);
+  void loadTextures(tinygltf::Model &gltfModel);
   VkSamplerAddressMode getVkWrapMode(int32_t wrapMode);
   VkFilter getVkFilterMode(int32_t filterMode);
   void loadTextureSamplers(tinygltf::Model &gltfModel);
   void loadMaterials(tinygltf::Model &gltfModel);
   void loadAnimations(tinygltf::Model &gltfModel);
-  ve::Model loadFromFile(const std::string &filename, ve::ModelLoader &modelLoader, float scale = 1.0f);
+  void loadFromFile(const std::string &filename, float scale = 1.0f);
   void calculateBoundingBox(Node *node, Node *parent);
   void getSceneDimensions();
   void updateAnimation(uint32_t index, float time);

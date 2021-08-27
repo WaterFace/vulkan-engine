@@ -5,32 +5,13 @@
 namespace ve {
 namespace glTF {
 
-Primitive::Primitive(uint32_t firstIndex, uint32_t indexCount, uint32_t vertexCount, Material &material)
+Primitive::Primitive(uint32_t firstIndex, uint32_t indexCount, uint32_t vertexCount, int32_t material)
     : firstIndex{firstIndex}
     , indexCount{indexCount}
     , vertexCount{vertexCount}
     , material{material} {}
 
-void Primitive::setBoundingBox(glm::vec3 min, glm::vec3 max) {
-  bb.min = min;
-  bb.max = max;
-  bb.valid = true;
-}
-
-void Mesh::setBoundingBox(glm::vec3 min, glm::vec3 max) {
-  bb.min = min;
-  bb.max = max;
-  bb.valid = true;
-}
-
-BoundingBox::BoundingBox()
-    : min{glm::vec3(INFINITY)}
-    , max{glm::vec3(-INFINITY)} {};
-BoundingBox::BoundingBox(glm::vec3 min, glm::vec3 max)
-    : min{min}
-    , max{max} {};
-
-ve::Model Model::loadFromFile(const std::string &filename, ve::ModelLoader &modelLoader, float scale) {
+void Model::loadFromFile(const std::string &filename, float scale) {
   tinygltf::Model gltfModel;
   tinygltf::TinyGLTF gltfContext;
   std::string error;
@@ -48,12 +29,9 @@ ve::Model Model::loadFromFile(const std::string &filename, ve::ModelLoader &mode
     fileLoaded = gltfContext.LoadASCIIFromFile(&gltfModel, &error, &warning, filename);
   }
 
-  std::vector<ve::Model::IndexType> indexBuffer;
-  std::vector<ve::Model::Vertex> vertexBuffer;
-
   if (fileLoaded) {
     loadTextureSamplers(gltfModel);
-    loadTextures(gltfModel, modelLoader);
+    loadTextures(gltfModel);
     loadMaterials(gltfModel);
     const tinygltf::Scene &scene = gltfModel.scenes[gltfModel.defaultScene > -1 ? gltfModel.defaultScene : 0];
     for (size_t i = 0; i < scene.nodes.size(); i++) {
@@ -79,11 +57,6 @@ ve::Model Model::loadFromFile(const std::string &filename, ve::ModelLoader &mode
   }
 
   extensions = gltfModel.extensionsUsed;
-
-  data.indices = indexBuffer;
-  data.vertices = vertexBuffer;
-  ve::Model loadedModel = modelLoader.load(data);
-  return
 }
 
 void Model::loadNode(
@@ -91,8 +64,8 @@ void Model::loadNode(
     const tinygltf::Node &node,
     uint32_t nodeIndex,
     const tinygltf::Model &model,
-    std::vector<ve::Model::IndexType> &indexBuffer,
-    std::vector<ve::Model::Vertex> &vertexBuffer,
+    std::vector<ve::Mesh::IndexType> &indexBuffer,
+    std::vector<ve::Mesh::Vertex> &vertexBuffer,
     float globalscale) {
   glTF::Node *newNode = new Node{};
   newNode->index = nodeIndex;
@@ -224,7 +197,7 @@ void Model::loadNode(
         hasSkin = (bufferJoints && bufferWeights);
 
         for (size_t v = 0; v < posAccessor.count; v++) {
-          ve::Model::Vertex vert{};
+          ve::Mesh::Vertex vert{};
           vert.position = glm::vec4(glm::make_vec3(&bufferPos[v * posByteStride]), 1.0f);
           vert.position.y *= -1;
           vert.normal = glm::normalize(
@@ -234,31 +207,6 @@ void Model::loadNode(
           vert.uv1 = bufferTexCoordSet1 ? glm::make_vec2(&bufferTexCoordSet1[v * uv1ByteStride]) : glm::vec3(0.0f);
           vert.color = glm::vec3(1.0f, 1.0f, 1.0f);
 
-          // if (hasSkin) {
-          //   switch (jointComponentType) {
-          //   case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT: {
-          //     const uint16_t *buf = static_cast<const uint16_t *>(bufferJoints);
-          //     vert.joint0 = glm::vec4(glm::make_vec4(&buf[v * jointByteStride]));
-          //     break;
-          //   }
-          //   case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE: {
-          //     const uint8_t *buf = static_cast<const uint8_t *>(bufferJoints);
-          //     vert.joint0 = glm::vec4(glm::make_vec4(&buf[v * jointByteStride]));
-          //     break;
-          //   }
-          //   default:
-          //     // Not supported by spec
-          //     std::cerr << "Joint component type " << jointComponentType << " not supported!" << std::endl;
-          //     break;
-          //   }
-          // } else {
-          //   vert.joint0 = glm::vec4(0.0f);
-          // }
-          // vert.weight0 = hasSkin ? glm::make_vec4(&bufferWeights[v * weightByteStride]) : glm::vec4(0.0f);
-          // // Fix for all zero weights
-          // if (glm::length(vert.weight0) == 0.0f) {
-          //   vert.weight0 = glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
-          // }
           vertexBuffer.push_back(vert);
         }
       }
@@ -298,22 +246,8 @@ void Model::loadNode(
           return;
         }
       }
-      Primitive *newPrimitive = new Primitive(
-          indexStart,
-          indexCount,
-          vertexCount,
-          primitive.material > -1 ? materials[primitive.material] : materials.back());
-      newPrimitive->setBoundingBox(posMin, posMax);
+      Primitive *newPrimitive = new Primitive(indexStart, indexCount, vertexCount, primitive.material);
       newMesh->primitives.push_back(newPrimitive);
-    }
-    // Mesh BB from BBs of primitives
-    for (auto p : newMesh->primitives) {
-      if (p->bb.valid && !newMesh->bb.valid) {
-        newMesh->bb = p->bb;
-        newMesh->bb.valid = true;
-      }
-      newMesh->bb.min = glm::min(newMesh->bb.min, p->bb.min);
-      newMesh->bb.max = glm::max(newMesh->bb.max, p->bb.max);
     }
     newNode->mesh = newMesh;
   }
@@ -363,7 +297,7 @@ void Model::loadTextureSamplers(tinygltf::Model &gltfModel) {
   }
 }
 
-void Model::loadTextures(tinygltf::Model &gltfModel, ve::ModelLoader &modelLoader) {
+void Model::loadTextures(tinygltf::Model &gltfModel) {
   for (tinygltf::Texture &tex : gltfModel.textures) {
     tinygltf::Image image = gltfModel.images[tex.source];
     glTF::TextureSampler textureSampler;
@@ -382,15 +316,18 @@ void Model::loadTextures(tinygltf::Model &gltfModel, ve::ModelLoader &modelLoade
     // std::cout << "gltf_loader: image mimetype: " << image.mimeType << std::endl;
     // std::cout << "gltf_loader: image size: " << image.width << "x" << image.height << std::endl;
 
-    ve::Texture loadedTexture;
+    Texture newTexture;
     if (image.uri.length() > 0) {
       // Then it's an external texture
-      loadedTexture = modelLoader.textureLoader().loadFromFile(image.uri);
+      newTexture.isExternalTexture = true;
+      newTexture.texturePath = std::move(image.uri);
     } else {
-      loadedTexture = modelLoader.textureLoader().loadFromData(image.image.data(), image.width, image.height);
+      newTexture.isExternalTexture = false;
+      newTexture.rawData = image.image;
+      newTexture.width = image.width;
+      newTexture.height = image.height;
     }
 
-    glTF::Texture newTexture{loadedTexture};
     textures.push_back(newTexture);
   }
 }
@@ -400,19 +337,19 @@ void Model::loadMaterials(tinygltf::Model &gltfModel) {
     glTF::Material material{};
 
     if (mat.values.find("baseColorTexture") != mat.values.end()) {
-      material.baseColorTexture = textures[mat.values["baseColorTexture"].TextureIndex()].texture;
+      material.baseColorTexture = mat.values["baseColorTexture"].TextureIndex();
     }
     if (mat.values.find("metallicRoughnessTexture") != mat.values.end()) {
-      material.metallicRoughnessTexture = textures[mat.values["metallicRoughnessTexture"].TextureIndex()].texture;
+      material.metallicRoughnessTexture = mat.values["metallicRoughnessTexture"].TextureIndex();
     }
     if (mat.values.find("normalTexture") != mat.values.end()) {
-      material.normalTexture = textures[mat.values["normalTexture"].TextureIndex()].texture;
+      material.normalTexture = mat.values["normalTexture"].TextureIndex();
     }
     if (mat.values.find("occlusionTexture") != mat.values.end()) {
-      material.occlusionTexture = textures[mat.values["occlusionTexture"].TextureIndex()].texture;
+      material.occlusionTexture = mat.values["occlusionTexture"].TextureIndex();
     }
     if (mat.values.find("emissiveTexture") != mat.values.end()) {
-      material.emissiveTexture = textures[mat.values["emissiveTexture"].TextureIndex()].texture;
+      material.emissiveTexture = mat.values["emissiveTexture"].TextureIndex();
     }
     if (mat.values.find("metallicFactor") != mat.values.end()) {
       material.metallicFactor = static_cast<float>(mat.values["metallicFactor"].Factor());

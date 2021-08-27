@@ -2,8 +2,8 @@
 
 #include "ve_game_object.hpp"
 #include "ve_light.hpp"
-#include "ve_model.hpp"
-#include "ve_model_loader.hpp"
+#include "ve_mesh.hpp"
+#include "ve_mesh_loader.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -24,7 +24,7 @@ struct DrawCall {
 
 class Scene {
 public:
-  Scene(ModelLoader &modelLoader);
+  Scene(MeshLoader &modelLoader);
   ~Scene(){};
 
   void addGameObject(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, std::string modelPath);
@@ -42,7 +42,7 @@ public:
   void draw(VkCommandBuffer cmd);
 
 private:
-  ModelLoader &m_modelLoader;
+  MeshLoader &m_modelLoader;
 
   std::vector<DrawCall> m_drawCalls;
   std::vector<PointLight> m_lights;

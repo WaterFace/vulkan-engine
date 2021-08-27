@@ -51,59 +51,10 @@ void App::run() {
   vkDeviceWaitIdle(m_device.device());
 }
 
-Model App::createCubeModel(Device &device, glm::vec3 offset) {
-  Model::Data data{};
-  data.vertices = {
-      // left face (white)
-      {{-.5f, -.5f, -.5f}, {.9f, .9f, .9f}},
-      {{-.5f, .5f, .5f}, {.9f, .9f, .9f}},
-      {{-.5f, -.5f, .5f}, {.9f, .9f, .9f}},
-      {{-.5f, .5f, -.5f}, {.9f, .9f, .9f}},
-
-      // right face (yellow)
-      {{.5f, -.5f, -.5f}, {.8f, .8f, .1f}},
-      {{.5f, .5f, .5f}, {.8f, .8f, .1f}},
-      {{.5f, -.5f, .5f}, {.8f, .8f, .1f}},
-      {{.5f, .5f, -.5f}, {.8f, .8f, .1f}},
-
-      // top face (orange, remember y axis points down)
-      {{-.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
-      {{.5f, -.5f, .5f}, {.9f, .6f, .1f}},
-      {{-.5f, -.5f, .5f}, {.9f, .6f, .1f}},
-      {{.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
-
-      // bottom face (red)
-      {{-.5f, .5f, -.5f}, {.8f, .1f, .1f}},
-      {{.5f, .5f, .5f}, {.8f, .1f, .1f}},
-      {{-.5f, .5f, .5f}, {.8f, .1f, .1f}},
-      {{.5f, .5f, -.5f}, {.8f, .1f, .1f}},
-
-      // nose face (blue)
-      {{-.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
-      {{.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
-      {{-.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
-      {{.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
-
-      // tail face (green)
-      {{-.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
-      {{.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
-      {{-.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
-      {{.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
-  };
-  for (auto &v : data.vertices) {
-    v.position += offset;
-  }
-
-  data.indices = {0,  1,  2,  0,  3,  1,  4,  5,  6,  4,  7,  5,  8,  9,  10, 8,  11, 9,
-                  12, 13, 14, 12, 15, 13, 16, 17, 18, 16, 19, 17, 20, 21, 22, 20, 23, 21};
-
-  return m_modelLoader.load(data);
-}
-
 void App::loadGameObjects() {
-  // Model cubeModel = createCubeModel(m_device, {0.0f, 0.0f, 0.0f});
-  // Model cubeModel = m_modelLoader.loadFromglTF("models/cube.gltf");
-  Model monkeyModel = m_modelLoader.loadFromglTF("smooth-monkey.glb");
+  // Mesh cubeModel = createCubeModel(m_device, {0.0f, 0.0f, 0.0f});
+  // Mesh cubeModel = m_modelLoader.loadFromglTF("models/cube.gltf");
+  Mesh monkeyModel = m_modelLoader.loadFromglTF("smooth-monkey.glb");
   Texture goldColor = m_modelLoader.textureLoader().loadFromFile("plastic/color.png");
   Texture goldDisplacement = m_modelLoader.textureLoader().loadFromFile("plastic/displacement.png");
   Texture goldMetal = m_modelLoader.textureLoader().loadFromFile("plastic/metal.png");
@@ -111,7 +62,7 @@ void App::loadGameObjects() {
   Texture goldRough = m_modelLoader.textureLoader().loadFromFile("plastic/rough.png");
 
   auto monkey = GameObject::createGameObject();
-  monkey.model = monkeyModel;
+  monkey.mesh = monkeyModel;
   monkey.transform.translation = {0.0f, 0.0f, -2.5f};
   monkey.transform.scale = {0.5f, 0.5f, 0.5f};
   m_gameObjects.push_back(std::move(monkey));
