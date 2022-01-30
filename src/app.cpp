@@ -51,27 +51,4 @@ void App::run() {
   vkDeviceWaitIdle(m_device.device());
 }
 
-void App::loadGameObjects() {
-  // Mesh cubeModel = createCubeModel(m_device, {0.0f, 0.0f, 0.0f});
-  // Mesh cubeModel = m_modelLoader.loadFromglTF("models/cube.gltf");
-  Mesh monkeyModel = m_modelLoader.loadFromglTF("smooth-monkey.glb");
-  Texture goldColor = m_modelLoader.textureLoader().loadFromFile("plastic/color.png");
-  Texture goldDisplacement = m_modelLoader.textureLoader().loadFromFile("plastic/displacement.png");
-  Texture goldMetal = m_modelLoader.textureLoader().loadFromFile("plastic/metal.png");
-  Texture goldNormal = m_modelLoader.textureLoader().loadFromFile("plastic/normal.png");
-  Texture goldRough = m_modelLoader.textureLoader().loadFromFile("plastic/rough.png");
-
-  auto monkey = GameObject::createGameObject();
-  monkey.mesh = monkeyModel;
-  monkey.transform.translation = {0.0f, 0.0f, -2.5f};
-  monkey.transform.scale = {0.5f, 0.5f, 0.5f};
-  m_gameObjects.push_back(std::move(monkey));
-
-  // auto cube = GameObject::createGameObject();
-  // cube.model = cubeModel;
-  // cube.transform.translation = {2.0f, 0.0f, -2.5f};
-  // monkey.transform.scale = {0.5f, 0.5f, 0.5f};
-  // m_gameObjects.push_back(std::move(cube));
-}
-
 } // namespace ve
