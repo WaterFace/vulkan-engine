@@ -35,7 +35,7 @@ public:
   const std::vector<GameObject> &gameObjects() { return m_gameObjects; }
   const std::vector<PointLight> &lights() { return m_lights; }
 
-  // this sorts the list of `GameObject`s by model, then
+  // this sorts the list of `GameObject`s by mesh, then
   // fills the `m_drawCalls` vector with the data to make
   // draw calls in `draw()`
   void prepare();

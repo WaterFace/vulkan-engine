@@ -26,6 +26,7 @@ public:
 
   static constexpr uint32_t MAX_INSTANCE_COUNT = 10000;
   static constexpr uint32_t MAX_LIGHT_COUNT = 100;
+  static constexpr uint32_t MAX_MATERIAL_COUNT = 1000;
 
 private:
   void createPipelineLayout();
@@ -43,6 +44,7 @@ private:
   Buffer m_primitiveBuffer;
   Buffer m_objectBuffer;
   Buffer m_lightBuffer;
+  Buffer m_materialBuffer;
 
   std::unique_ptr<Pipeline> m_pipeline;
   VkPipelineLayout m_pipelineLayout;

@@ -53,6 +53,9 @@ void Model::loadFromFile(const std::string &filename, float scale) {
     // }
 
   } else {
+    std::cout << "Failed to load mesh " << filename << std::endl;
+    std::cout << "Errors: " << std::endl << error << std::endl;
+    std::cout << "Warnings: " << std::endl << warning << std::endl;
     throw std::runtime_error("Failed to load model " + filename);
   }
 
@@ -100,11 +103,12 @@ void Model::loadNode(
       loadNode(newNode, model.nodes[node.children[i]], node.children[i], model, indexBuffer, vertexBuffer, globalscale);
     }
   }
-
   if (node.mesh > -1) {
     const tinygltf::Mesh mesh = model.meshes[node.mesh];
     Mesh *newMesh = new Mesh(newNode->matrix);
+    // std::cout << "Model::loadNode(): newMesh->primitives.size(): " << newMesh->primitives.size() << std::endl;
     for (size_t j = 0; j < mesh.primitives.size(); j++) {
+      // std::cout << "mesh.primitives.size(): " << mesh.primitives.size() << std::endl;
       const tinygltf::Primitive &primitive = mesh.primitives[j];
       uint32_t indexStart = static_cast<uint32_t>(indexBuffer.size());
       uint32_t vertexStart = static_cast<uint32_t>(vertexBuffer.size());
@@ -246,11 +250,19 @@ void Model::loadNode(
           return;
         }
       }
+      // std::cout << "glTF::Model::loadNode(): newPrimitive:" << std::endl;
+      // std::cout << "glTF::Model::loadNode(): indexStart: " << indexStart << std::endl;
+      // std::cout << "glTF::Model::loadNode(): indexCount: " << indexCount << std::endl;
+      // std::cout << "glTF::Model::loadNode(): vertexCount: " << vertexCount << std::endl;
+      // std::cout << "glTF::Model::loadNode(): primitive.material: " << primitive.material << std::endl;
       Primitive *newPrimitive = new Primitive(indexStart, indexCount, vertexCount, primitive.material);
       newMesh->primitives.push_back(newPrimitive);
     }
     newNode->mesh = newMesh;
+    std::cout << "newNode->mesh.primitives.size(): " << newNode->mesh->primitives.size() << std::endl;
   }
+
+  nodes.push_back(newNode);
 }
 
 VkSamplerAddressMode Model::getVkWrapMode(int32_t wrapMode) {

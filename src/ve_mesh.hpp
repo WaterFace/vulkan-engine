@@ -11,6 +11,10 @@
 
 namespace ve {
 
+// conceptually, a `Mesh` is a collection of `MeshPrimitive`s
+// technically, it consists of `firstPrimitive`, an index into a vector
+// of loaded primitives, and `primitiveCount`, the number of primitives in
+// the mesh.
 class Mesh {
 public:
   struct Vertex {

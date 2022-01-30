@@ -9,6 +9,7 @@ layout(location = 1) in vec3 fragColor;
 layout(location = 2) in vec3 fragNormal;
 layout(location = 3) in vec2 fragUV0;
 layout(location = 4) in vec2 fragUV1;
+layout(location = 5) flat in int primitiveIndex;
 
 layout(location = 0) out vec4 outColor;
 
@@ -19,14 +20,23 @@ layout(set = 0, binding = 0) uniform Uniform{
   vec3 position;
 } camera;
 
-struct InstanceData {
+struct Object {
   mat4 model;
   mat4 normalRotation;
 };
 
-layout(set = 0, binding = 1) buffer Instances{
-  mat4 model;
-} instanceData;
+layout(set = 0, binding = 1) buffer Objects{
+  Object object[];
+} objectData;
+
+struct Primitive {
+  uint parentObject;
+  int material;
+};
+
+layout (set = 0, binding = 2) buffer Primitives{
+  Primitive primitive[];
+} primitiveData;
 
 struct PointLight {
   vec3 position;
@@ -38,15 +48,32 @@ struct PointLight {
   float specularPower;
 };
 
-layout(set = 0, binding = 2) buffer LightData{
+layout(set = 0, binding = 3) buffer Lights{
   int numLights;
-  PointLight lights[];
-} lights;
+  PointLight light[];
+} lightData;
 
 layout(set = 1, binding = 0) uniform sampler2D samplers[MAX_TEXTURES];
 
+struct Material {
+  vec4 metallicRoughnessFactor;
+  vec4 baseColorFactor;
+  vec4 emissiveFactor;
+
+  uint baseColorTexture;
+  uint metallicRoughnessTexture;
+  uint normalTexture;
+  uint occlusionTexture;
+  uint emissiveTexture;
+};
+
+layout(set = 1, binding = 1) buffer Materials{
+  Material material[];
+} materialData;
+
 vec3 getNormal() {
-  vec3 tangentNormal = texture(samplers[4], fragUV0).xyz;
+  Material material = materialData.material[primitiveData.primitive[primitiveIndex].material];
+  vec3 tangentNormal = texture(samplers[material.normalTexture], fragUV0).xyz;
 
   vec3 q1 = dFdx(fragPosition);
 	vec3 q2 = dFdy(fragPosition);
@@ -103,14 +130,16 @@ void main() {
   vec3 N = getNormal();
   vec3 V = normalize(camera.position - fragPosition);
 
-  vec3 albedo = texture(samplers[1], fragUV0).rgb;
+  Material material = materialData.material[primitiveData.primitive[primitiveIndex].material];
+
+  vec3 albedo = texture(samplers[material.baseColorTexture], fragUV0).rgb /* * material.baseColorFactor.rgb */;
   albedo = pow(albedo, vec3(2.2));
-  float metallic = texture(samplers[3], fragUV0).r;
-  float roughness = texture(samplers[5], fragUV0).r;
+  float metallic = texture(samplers[material.metallicRoughnessTexture], fragUV0).b /* * material.metallicFactor */;
+  float roughness = texture(samplers[material.metallicRoughnessTexture], fragUV0).g /* * material.roughnessFactor */;
 
   vec3 Lo = vec3(0.0);
-  for(int i = 0; i < lights.numLights; i++) {
-    PointLight light = lights.lights[i];
+  for(int i = 0; i < lightData.numLights; i++) {
+    PointLight light = lightData.light[i];
     vec3 L = normalize(light.position - fragPosition);
     vec3 H = normalize(V+L);
 
@@ -145,4 +174,5 @@ void main() {
   color = pow(color, vec3(1/2.2));
 
   outColor = vec4(color, 1.0);
+  // outColor = vec4(material.baseColorFactor.rgb, 1);
 }

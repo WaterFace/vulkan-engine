@@ -17,8 +17,8 @@ TextureLoader::TextureLoader(Device &device)
   vkCreateSampler(m_device.device(), &globalSamplerCreateInfo, nullptr, &m_globalSampler);
   m_globalSamplerInfo.sampler = m_globalSampler;
 
-  uint8_t blackPixel[4] = {0, 0, 0, 255};
-  m_textureCache[""] = loadFromData(blackPixel, 1, 1);
+  uint8_t whitePixel[4] = {255, 255, 255, 255};
+  m_textureCache[""] = loadFromData(whitePixel, 1, 1);
 
   m_descriptorInfos.resize(MAX_TEXTURES, m_descriptorInfos[0]);
 }

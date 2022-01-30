@@ -7,8 +7,7 @@
 namespace ve {
 
 struct Material {
-  float metallicFactor = 1.0f;
-  float roughnessFactor = 1.0f;
+  glm::vec4 metallicRoughnessFactor = glm::vec4(1.0f);
   glm::vec4 baseColorFactor = glm::vec4(1.0f);
   glm::vec4 emissiveFactor = glm::vec4(1.0f);
 
@@ -16,7 +15,7 @@ struct Material {
   Texture metallicRoughnessTexture;
   Texture normalTexture;
   Texture occlusionTexture;
-  Texture emissiveTexture;
+  alignas(16) Texture emissiveTexture;
 };
 
 } // namespace ve

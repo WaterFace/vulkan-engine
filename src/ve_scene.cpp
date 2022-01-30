@@ -1,6 +1,7 @@
 #include "ve_scene.hpp"
 
 #include <algorithm>
+#include <iostream>
 
 namespace ve {
 
@@ -33,6 +34,7 @@ void Scene::addGameObject(glm::vec3 position, glm::vec3 rotation, glm::vec3 scal
 void Scene::addLight(PointLight light) { m_lights.push_back(light); }
 
 void Scene::prepare() {
+  // std::cout << "Scene::prepare()" << std::endl;
   if (m_gameObjects.size() == 0) {
     return;
   }
@@ -59,9 +61,18 @@ void Scene::prepare() {
       i++;
       instanceCount++;
     }
-    DrawCall dc =
-        {currentMesh.indexCount, instanceCount, currentMesh.firstIndex, currentMesh.vertexOffset, firstInstance};
-    m_drawCalls.push_back(dc);
+
+    for (uint32_t j = 0; j < currentMesh.primitiveCount; j++) {
+      Mesh::Primitive currentPrimitive = m_modelLoader.getPrimitive(currentMesh.firstPrimitive + j);
+      DrawCall dc = {
+          currentPrimitive.indexCount,
+          instanceCount,
+          currentPrimitive.firstIndex,
+          currentPrimitive.vertexOffset,
+          firstInstance};
+      m_drawCalls.push_back(dc);
+    }
+
     firstInstance += instanceCount;
     instanceCount = 0;
     currentMesh = m_gameObjects[i].mesh;

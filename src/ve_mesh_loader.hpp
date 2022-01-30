@@ -6,17 +6,12 @@
 #include "ve_mesh.hpp"
 #include "ve_texture_loader.hpp"
 
+#include <iostream>
 #include <memory>
 #include <string>
 #include <unordered_map>
 
 namespace ve {
-
-// struct LoadedModel {
-//   uint32_t indexCount;
-//   uint32_t firstIndex;
-//   int32_t vertexOffset;
-// };
 
 class MeshLoader {
 public:
@@ -29,14 +24,22 @@ public:
 
   TextureLoader &textureLoader() { return m_textureLoader; }
 
+  Mesh::Primitive &getPrimitive(size_t i) { return primitives[i]; }
+  Material &getMaterial(size_t i) { return materials[i]; }
+
   size_t addMaterial(Material mat) {
-    m_materials.push_back(mat);
-    return m_materials.size() - 1;
+    std::cout << "adding material with texture indices " << mat.baseColorTexture.id << ", " << mat.normalTexture.id
+              << ", " << mat.metallicRoughnessTexture.id << std::endl;
+    materials.push_back(mat);
+    return materials.size() - 1;
   };
 
   static const std::string MODEL_PATH;
   // Mesh loadPrimitive(const Mesh::Data &data);
   Mesh loadFromglTF(const std::string &filepath);
+
+  std::vector<Material> materials;
+  std::vector<Mesh::Primitive> primitives;
 
 private:
   void growVertexBuffer();
@@ -44,15 +47,12 @@ private:
 
   bool m_invalidBuffers{true};
 
-  std::vector<Material> m_materials;
-  std::vector<Mesh::Primitive> m_primitives;
-
   TextureLoader m_textureLoader;
 
   static constexpr VkDeviceSize INITIAL_BUFFER_SIZE = 1000;
   Device &m_device;
 
-  std::unordered_map<std::string, Mesh> m_loadedModels;
+  std::unordered_map<std::string, Mesh> m_loadedMeshes;
 
   std::unique_ptr<Buffer> m_bigVertexBuffer;
   uint32_t m_currentVertexBufferSize{INITIAL_BUFFER_SIZE};
