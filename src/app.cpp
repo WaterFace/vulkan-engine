@@ -16,7 +16,6 @@ namespace ve {
 
 App::App()
     : m_modelLoader{m_device} {
-  loadGameObjects();
   KeyInput::init(m_window.window());
   MouseInput::init(m_window.window());
 
