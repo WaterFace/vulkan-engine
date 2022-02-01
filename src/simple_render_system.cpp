@@ -246,7 +246,7 @@ void SimpleRenderSystem::renderGameObjects(
     for (uint32_t j = 0; j < obj.mesh.primitiveCount; j++) {
       primitiveData->primitives[numberOfPrimitives].parentObject = i;
       Mesh::Primitive currentPrimitive = m_modelLoader.getPrimitive(obj.mesh.firstPrimitive + j);
-      primitiveData->primitives[numberOfPrimitives].material = 1; // currentPrimitive.material;
+      primitiveData->primitives[numberOfPrimitives].material = currentPrimitive.material;
 
       numberOfPrimitives++;
     }
