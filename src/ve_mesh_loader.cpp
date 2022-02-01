@@ -159,6 +159,8 @@ Mesh MeshLoader::loadFromglTF(const std::string &filepath) {
 
     // std::cout << "MeshLoader::loadFromglTF(): loading materials" << std::endl;
 
+    std::vector<size_t> currentMeshMaterials{};
+
     size_t materialOffset = materials.size();
     for (auto material : model.materials) {
       Material newMaterial;
@@ -183,12 +185,16 @@ Mesh MeshLoader::loadFromglTF(const std::string &filepath) {
       // std::cout << "MeshLoader::loadFromglTF(): occlusion index: " << material.occlusionTexture << std::endl;
       newMaterial.occlusionTexture = textures[material.occlusionTexture];
 
-      addMaterial(newMaterial);
+      size_t matID = addMaterial(newMaterial);
+      currentMeshMaterials.push_back(matID);
     }
 
     // Load primitives
 
     // std::cout << "MeshLoader::loadFromglTF(): loading primitives" << std::endl;
+
+    std::cout << "MeshLoader::loadFromglTF(): # of materials in current mesh: " << currentMeshMaterials.size()
+              << std::endl;
 
     Mesh newMesh;
     newMesh.primitiveCount = 0;
@@ -199,8 +205,17 @@ Mesh MeshLoader::loadFromglTF(const std::string &filepath) {
       newPrimitive.indexCount = primitive->indexCount;
       newPrimitive.vertexCount = primitive->vertexCount;
       newPrimitive.vertexOffset = m_currentVertexOffset;
-      newPrimitive.material = primitive->material;
+      if (primitive->material == -1) {
+        std::cout << "MeshLoader::loadFromglTF(): primitive doesn't have a material, using the default" << std::endl;
+        newPrimitive.material = 0;
+      } else {
+        std::cout << "MeshLoader::loadFromglTF(): adding primitive using material: " << primitive->material
+                  << " (offset " << currentMeshMaterials[primitive->material] << ")" << std::endl;
+        newPrimitive.material = currentMeshMaterials[primitive->material];
+      }
 
+      m_currentIndexOffset += newPrimitive.indexCount;
+      m_currentVertexOffset += newPrimitive.vertexCount;
       primitives.push_back(newPrimitive);
       newMesh.primitiveCount++;
     }
