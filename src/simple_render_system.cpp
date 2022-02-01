@@ -62,7 +62,9 @@ void loadScene(Scene &scene) {
   // scene.addGameObject(glm::vec3(0.0f, -2.0f, -2.5f), glm::vec3(0.0f), glm::vec3(0.5f), "tile-sphere.gltf");
   // scene.addGameObject(glm::vec3(0.0f, 2.0f, -2.5f), glm::vec3(0.0f), glm::vec3(0.5f), "tile-sphere-packed.gltf");
 
-  scene.addGameObject(glm::vec3(0.0f, 0.0f, -0.0f), glm::vec3(0.0f), glm::vec3(0.5f), "linked-rings.gltf");
+  scene.addGameObject(glm::vec3(-1.0f, 0.0f, -2.5f), glm::vec3(0.0f), glm::vec3(0.5f), "smooth-monkey.glb");
+  scene.addGameObject(glm::vec3(1.0f, 0.0f, -2.5f), glm::vec3(0.0f), glm::vec3(0.5f), "tile-sphere.gltf");
+  scene.addGameObject(glm::vec3(0.0f, -2.0f, -2.5f), glm::vec3(0.0f), glm::vec3(0.5f), "gold-ring.gltf");
 
   scene.addLight({glm::vec3(2.0f, 0.0f, -1.5f), glm::vec3(0.8f, 0.8f, 0.8f), 1.0f, glm::vec3(1.0f, 1.0f, 1.0f), 0.3f});
   scene.addLight({glm::vec3(-2.0f, 0.0f, -1.5f), glm::vec3(0.8f, 0.8f, 0.8f), 1.0f, glm::vec3(1.0f, 1.0f, 1.0f), 0.3f});
