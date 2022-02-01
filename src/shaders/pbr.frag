@@ -71,6 +71,16 @@ layout(set = 1, binding = 1) buffer Materials{
   Material material[];
 } materialData;
 
+vec3 exampleColors[] = {
+  vec3(1.0, 0.0, 0.0),
+  vec3(0.0, 1.0, 0.0),
+  vec3(0.0, 0.0, 1.0),
+  vec3(1.0, 1.0, 0.0),
+  vec3(1.0, 0.0, 1.0),
+  vec3(0.0, 1.0, 1.0),
+  vec3(1.0, 1.0, 1.0)
+};
+
 vec3 getNormal() {
   Material material = materialData.material[primitiveData.primitive[primitiveIndex].material];
   vec3 tangentNormal = texture(samplers[material.normalTexture], fragUV0).xyz;
