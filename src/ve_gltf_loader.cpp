@@ -380,7 +380,7 @@ void Model::loadMaterials(tinygltf::Model &gltfModel) {
   }
 
   // for models with no material
-  materials.push_back(glTF::Material{});
+  // materials.push_back(glTF::Material{});
 }
 
 } // namespace glTF
